@@ -2,3 +2,4 @@
 "weekly feature A" 
 "dev-1" 
 "dev-2" 
+"CONFLICT_LINE=dev" 
