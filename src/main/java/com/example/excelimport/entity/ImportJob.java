@@ -16,7 +16,7 @@ public class ImportJob {
     private UUID tenantId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 32)
     private ImportJobStatus status;
 
     @Column(name = "file_uri", nullable = false)
