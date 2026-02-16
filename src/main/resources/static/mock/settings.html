@@ -201,15 +201,25 @@
       <label>Retention Days <input id="x_days" type="number" min="1" style="width:100%;padding:6px;border:1px solid #cbd5e1;border-radius:6px;"></label>
       <button id="x_save" style="padding:8px;border:0;background:#2563eb;color:#fff;border-radius:6px;">Save</button>
       <div id="x_msg" style="min-height:16px;"></div>
+      <div style="font-weight:700;margin-top:6px;">Users</div>
+      <table style="width:100%;font-size:12px;border-collapse:collapse;">
+        <thead><tr><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Username</th><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Display</th><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Active</th></tr></thead>
+        <tbody id="x_users"></tbody>
+      </table>
     </div>
   `);
 
   const msgEl = panel.querySelector('#x_msg');
+  const usersEl = panel.querySelector('#x_users');
 
   async function load() {
     const s = (await app.api('/api/v1/settings', { method:'GET', headers: {} })).data;
     panel.querySelector('#x_root').value = s.storageRoot;
     panel.querySelector('#x_days').value = s.retentionDays;
+
+    const users = (await app.api('/api/v1/users?page=0&size=20&sort=createdAt,desc', { method:'GET', headers: {} })).data.items || [];
+    usersEl.innerHTML = users.map((u) => `<tr><td>${u.username}</td><td>${u.displayName}</td><td>${u.active}</td></tr>`).join('');
+    if (!users.length) usersEl.innerHTML = '<tr><td colspan="3">No users</td></tr>';
   }
 
   panel.querySelector('#x_save').addEventListener('click', async () => {

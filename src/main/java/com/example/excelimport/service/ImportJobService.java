@@ -3,11 +3,14 @@ package com.example.excelimport.service;
 import com.example.excelimport.dto.ImportErrorItem;
 import com.example.excelimport.dto.ImportJobListItem;
 import com.example.excelimport.dto.ImportStatusResponse;
+import com.example.excelimport.dto.ExcelRowItem;
+import com.example.excelimport.dto.PagedExcelRowsResponse;
 import com.example.excelimport.dto.PagedErrorResponse;
 import com.example.excelimport.dto.PagedImportJobsResponse;
 import com.example.excelimport.entity.ImportJob;
 import com.example.excelimport.entity.ImportJobStatus;
 import com.example.excelimport.exception.ApiException;
+import com.example.excelimport.repository.ExcelRowDataRepository;
 import com.example.excelimport.repository.ImportErrorLogRepository;
 import com.example.excelimport.repository.ImportJobRepository;
 import com.example.excelimport.storage.FileStorageService;
@@ -25,15 +28,18 @@ public class ImportJobService {
 
     private final ImportJobRepository importJobRepository;
     private final ImportErrorLogRepository importErrorLogRepository;
+    private final ExcelRowDataRepository excelRowDataRepository;
     private final FileStorageService fileStorageService;
     private final ImportWorkerService importWorkerService;
 
     public ImportJobService(ImportJobRepository importJobRepository,
                             ImportErrorLogRepository importErrorLogRepository,
+                            ExcelRowDataRepository excelRowDataRepository,
                             FileStorageService fileStorageService,
                             ImportWorkerService importWorkerService) {
         this.importJobRepository = importJobRepository;
         this.importErrorLogRepository = importErrorLogRepository;
+        this.excelRowDataRepository = excelRowDataRepository;
         this.fileStorageService = fileStorageService;
         this.importWorkerService = importWorkerService;
     }
@@ -96,6 +102,16 @@ public class ImportJobService {
         Page<ImportErrorItem> page = importErrorLogRepository.findByJobId(jobId, pageable)
                 .map(it -> new ImportErrorItem(it.getRowIndex(), it.getColumnName(), it.getErrorCode(), it.getErrorMsg()));
         return new PagedErrorResponse(page.getContent(), page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages());
+    }
+
+    @Transactional(readOnly = true)
+    public PagedExcelRowsResponse getRows(UUID jobId, Pageable pageable) {
+        if (!importJobRepository.existsById(jobId)) {
+            throw notFound(jobId);
+        }
+        Page<ExcelRowItem> page = excelRowDataRepository.findByJobId(jobId, pageable)
+                .map(it -> new ExcelRowItem(it.getId(), it.getPayloadJson(), it.getCreatedAt()));
+        return new PagedExcelRowsResponse(page.getContent(), page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages());
     }
 
     private int progress(int processedRows, int totalRows) {

@@ -248,15 +248,22 @@
       <input id="x_job" style="padding:6px;border:1px solid #cbd5e1;border-radius:6px;" placeholder="job UUID" value="${initJob}">
       <button id="x_load" style="padding:6px 10px;">Load</button>
       <div id="x_status" style="grid-column:1 / -1;min-height:16px;"></div>
+      <div style="grid-column:1 / -1;font-weight:700;margin-top:4px;">Errors</div>
       <table style="grid-column:1 / -1;width:100%;font-size:12px;border-collapse:collapse;">
         <thead><tr><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Row</th><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Column</th><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Code</th><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Message</th></tr></thead>
         <tbody id="x_err"></tbody>
+      </table>
+      <div style="grid-column:1 / -1;font-weight:700;margin-top:8px;">Rows</div>
+      <table style="grid-column:1 / -1;width:100%;font-size:12px;border-collapse:collapse;">
+        <thead><tr><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Row ID</th><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Payload</th><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Created</th></tr></thead>
+        <tbody id="x_rows"></tbody>
       </table>
     </div>
   `);
 
   const statusEl = panel.querySelector('#x_status');
   const errEl = panel.querySelector('#x_err');
+  const rowsEl = panel.querySelector('#x_rows');
 
   async function load() {
     const jobId = panel.querySelector('#x_job').value.trim();
@@ -269,6 +276,10 @@
       const e = (await app.api(`/api/v1/imports/${jobId}/errors?page=0&size=50&sort=createdAt,desc`, { method: 'GET', headers: {} })).data.items || [];
       errEl.innerHTML = e.map((it)=>`<tr><td>${it.rowIndex}</td><td>${it.columnName}</td><td>${it.errorCode}</td><td>${it.errorMsg}</td></tr>`).join('');
       if (!e.length) errEl.innerHTML = '<tr><td colspan="4">No errors</td></tr>';
+
+      const rows = (await app.api(`/api/v1/imports/${jobId}/rows?page=0&size=20&sort=createdAt,desc`, { method: 'GET', headers: {} })).data.items || [];
+      rowsEl.innerHTML = rows.map((it) => `<tr><td>${it.id}</td><td><code style="white-space:pre-wrap;">${it.payloadJson}</code></td><td>${app.formatDate(it.createdAt)}</td></tr>`).join('');
+      if (!rows.length) rowsEl.innerHTML = '<tr><td colspan="3">No rows</td></tr>';
     } catch (err) {
       statusEl.textContent = err.message;
       statusEl.style.color = '#b91c1c';

@@ -4,6 +4,7 @@ import com.example.excelimport.config.RequestIdFilter;
 import com.example.excelimport.dto.ApiResponse;
 import com.example.excelimport.dto.ImportCreateResponse;
 import com.example.excelimport.dto.ImportStatusResponse;
+import com.example.excelimport.dto.PagedExcelRowsResponse;
 import com.example.excelimport.dto.PagedErrorResponse;
 import com.example.excelimport.dto.PagedImportJobsResponse;
 import com.example.excelimport.exception.ApiException;
@@ -64,6 +65,15 @@ public class ImportController {
             @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             HttpServletRequest request) {
         PagedErrorResponse data = importJobService.getErrors(jobId, pageable);
+        return ApiResponse.success(data, requestId(request));
+    }
+
+    @GetMapping("/imports/{jobId}/rows")
+    public ApiResponse<PagedExcelRowsResponse> rows(
+            @PathVariable UUID jobId,
+            @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            HttpServletRequest request) {
+        PagedExcelRowsResponse data = importJobService.getRows(jobId, pageable);
         return ApiResponse.success(data, requestId(request));
     }
 

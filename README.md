@@ -23,7 +23,7 @@ mvn test
 ## Login
 - Access: `http://localhost:8080`
 - Default credentials: `admin` / `admin1234`
-- Credentials are seeded by Flyway migration `V2__auth_user.sql`.
+- Credentials are seeded by Flyway migrations (`V2__auth_user.sql`, `V3__seed_dummy_data.sql`)
 
 ## API
 - `POST /api/v1/auth/login`
@@ -33,8 +33,16 @@ mvn test
 - `GET /api/v1/imports` (paged)
 - `GET /api/v1/imports/{jobId}`
 - `GET /api/v1/imports/{jobId}/errors?page=0&size=50`
+- `GET /api/v1/imports/{jobId}/rows?page=0&size=50`
+- `GET /api/v1/users?page=0&size=20`
 - `GET /api/v1/settings`
 - `PUT /api/v1/settings`
+
+## Seed data (V3)
+- Users: `admin`, `operator`, `viewer`
+- Sample jobs:
+  - `10000000-0000-0000-0000-000000000001` (COMPLETED)
+  - `10000000-0000-0000-0000-000000000002` (FAILED)
 
 ## Storage policy
 - Storage root: `./storage` (configurable via `app.storage.root`)
@@ -54,4 +62,3 @@ mvn test
 - Validation rules: `col_1` required, each cell max 255 chars.
 - Partial success: invalid rows are logged to `error_log`, valid rows are saved.
 - Original stitch screenshots are kept at `/mock/screens/*.png`.
-
