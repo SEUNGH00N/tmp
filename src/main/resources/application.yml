@@ -1,0 +1,30 @@
+﻿spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/exceldb
+    username: excel
+    password: excel
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 100
+        order_inserts: true
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  session:
+    store-type: redis
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+app:
+  storage:
+    root: ./storage
+    retention-days: 30

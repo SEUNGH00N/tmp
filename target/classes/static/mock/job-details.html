@@ -1,0 +1,282 @@
+﻿<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Excel Import Service - Job Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c83f6",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101722",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spin 2s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 md:px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-4 text-slate-900 dark:text-white">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">table_chart</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Excel Import Service</h2>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<main class="flex flex-1 justify-center py-8 px-4 md:px-10">
+<div class="layout-content-container flex flex-col max-w-[1200px] flex-1 gap-6">
+<!-- Breadcrumbs -->
+<div class="flex flex-wrap items-center gap-2 text-sm">
+<a class="text-slate-500 hover:text-primary transition-colors" href="#">Jobs</a>
+<span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+<span class="text-slate-900 dark:text-white font-medium">Job Detail - job_88291-x</span>
+</div>
+<!-- Job Summary Card -->
+<div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3">
+<h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">job_88291-x</h1>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm animate-spin-slow">sync</span>
+                                        VALIDATING
+                                    </div>
+</div>
+<p class="text-slate-500 text-sm">Tenant ID: <span class="font-mono text-slate-700 dark:text-slate-300">tenant-alpha-01</span></p>
+</div>
+<div class="flex flex-col md:items-end text-sm text-slate-500">
+<p>Created: 2023-10-27 10:00:00</p>
+<p>Last Updated: 2023-10-27 10:05:22</p>
+</div>
+</div>
+<!-- Progress Section -->
+<div class="p-6 bg-slate-50/50 dark:bg-slate-800/30">
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-center">
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Processing Rows</span>
+<span class="text-sm font-bold text-primary">65% Complete</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+<div class="bg-primary h-full rounded-full transition-all duration-500" style="width: 65%;"></div>
+</div>
+</div>
+</div>
+<!-- Metrics Grid -->
+<div class="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-slate-100 dark:divide-slate-800">
+<div class="p-6 flex flex-col gap-1">
+<span class="text-slate-500 text-xs font-bold uppercase tracking-widest">Total Rows</span>
+<span class="text-2xl font-bold text-slate-900 dark:text-white">1,000</span>
+</div>
+<div class="p-6 flex flex-col gap-1">
+<span class="text-slate-500 text-xs font-bold uppercase tracking-widest">Processed</span>
+<span class="text-2xl font-bold text-slate-900 dark:text-white">650</span>
+</div>
+<div class="p-6 flex flex-col gap-1">
+<span class="text-slate-500 text-xs font-bold uppercase tracking-widest">Success</span>
+<span class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">646</span>
+</div>
+<div class="p-6 flex flex-col gap-1">
+<span class="text-slate-500 text-xs font-bold uppercase tracking-widest">Failed</span>
+<span class="text-2xl font-bold text-rose-600 dark:text-rose-400">4</span>
+</div>
+</div>
+</div>
+<!-- Validation Errors Section -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Validation Errors</h3>
+<span class="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 text-xs font-bold">4 Found</span>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-sm">refresh</span>
+                                    Refresh Errors
+                                </button>
+<button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20">
+<span class="material-symbols-outlined text-sm">download</span>
+                                    Download CSV Report
+                                </button>
+</div>
+</div>
+<!-- Errors Table -->
+<div class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
+<th class="px-6 py-4 border-b border-slate-100 dark:border-slate-800">Row Index</th>
+<th class="px-6 py-4 border-b border-slate-100 dark:border-slate-800">Column Name</th>
+<th class="px-6 py-4 border-b border-slate-100 dark:border-slate-800">Error Code</th>
+<th class="px-6 py-4 border-b border-slate-100 dark:border-slate-800">Error Message</th>
+<th class="px-6 py-4 border-b border-slate-100 dark:border-slate-800">Created At</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">12</td>
+<td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">Email</td>
+<td class="px-6 py-4 text-xs font-bold"><span class="px-2 py-1 rounded bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400">ERR_INVALID_FORMAT</span></td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 italic">"Invalid email domain. Must be a corporate address."</td>
+<td class="px-6 py-4 text-xs text-slate-500">2023-10-27 10:05:01</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">45</td>
+<td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">Price</td>
+<td class="px-6 py-4 text-xs font-bold"><span class="px-2 py-1 rounded bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400">ERR_TYPE_MISMATCH</span></td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 italic">"Expected numeric value. Received string '$45.00'."</td>
+<td class="px-6 py-4 text-xs text-slate-500">2023-10-27 10:05:12</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">102</td>
+<td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">SKU</td>
+<td class="px-6 py-4 text-xs font-bold"><span class="px-2 py-1 rounded bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400">ERR_DUPLICATE</span></td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 italic">"SKU 'TECH-99-A' already exists in the database."</td>
+<td class="px-6 py-4 text-xs text-slate-500">2023-10-27 10:05:18</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">512</td>
+<td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">Stock</td>
+<td class="px-6 py-4 text-xs font-bold"><span class="px-2 py-1 rounded bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400">ERR_OUT_OF_RANGE</span></td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 italic">"Stock quantity cannot be a negative value."</td>
+<td class="px-6 py-4 text-xs text-slate-500">2023-10-27 10:05:22</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+<div class="text-sm text-slate-500">
+                                    Showing <span class="font-bold text-slate-900 dark:text-white">1</span> to <span class="font-bold text-slate-900 dark:text-white">4</span> of <span class="font-bold text-slate-900 dark:text-white">4</span> errors
+                                </div>
+<div class="flex gap-2">
+<button class="flex items-center justify-center h-8 px-3 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed text-xs font-bold transition-colors" disabled="">
+                                        Previous
+                                    </button>
+<button class="flex items-center justify-center h-8 px-3 rounded-md bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-colors">
+                                        1
+                                    </button>
+<button class="flex items-center justify-center h-8 px-3 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed text-xs font-bold transition-colors" disabled="">
+                                        Next
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Additional Context (Optional) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+<div class="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-start gap-4">
+<div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-white">Source File</h4>
+<p class="text-sm text-slate-500 mb-2">inventory_update_v2_final.xlsx</p>
+<button class="text-primary text-xs font-bold flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-sm">download</span>
+                                    Download Original
+                                </button>
+</div>
+</div>
+<div class="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-start gap-4">
+<div class="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined">help_outline</span>
+</div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-white">Need help?</h4>
+<p class="text-sm text-slate-500 mb-2">Check the data mapping documentation or contact support if errors persist.</p>
+<a class="text-primary text-xs font-bold hover:underline" href="#">View Documentation →</a>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="mt-10 py-6 px-10 border-t border-slate-200 dark:border-slate-800 text-center text-slate-500 text-xs">
+                © 2023 Excel Import Service • Internal Management Tool • Version 2.4.1
+            </footer>
+</div>
+</div>
+<script src="/mock/app.js"></script>
+<script>
+(async () => {
+  const auth = await app.requireAuth();
+  if (!auth) return;
+  app.optimizeSidebar('jobs');
+  app.bindLogout();
+
+  const qs = new URLSearchParams(window.location.search);
+  const initJob = qs.get('jobId') || '';
+
+  const panel = app.mountFloatingPanel('Live Job Detail', `
+    <div style="display:grid;grid-template-columns:1fr auto;gap:6px;font-size:12px;">
+      <input id="x_job" style="padding:6px;border:1px solid #cbd5e1;border-radius:6px;" placeholder="job UUID" value="${initJob}">
+      <button id="x_load" style="padding:6px 10px;">Load</button>
+      <div id="x_status" style="grid-column:1 / -1;min-height:16px;"></div>
+      <table style="grid-column:1 / -1;width:100%;font-size:12px;border-collapse:collapse;">
+        <thead><tr><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Row</th><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Column</th><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Code</th><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Message</th></tr></thead>
+        <tbody id="x_err"></tbody>
+      </table>
+    </div>
+  `);
+
+  const statusEl = panel.querySelector('#x_status');
+  const errEl = panel.querySelector('#x_err');
+
+  async function load() {
+    const jobId = panel.querySelector('#x_job').value.trim();
+    if (!jobId) return;
+    try {
+      const s = (await app.api(`/api/v1/imports/${jobId}`, { method: 'GET', headers: {} })).data;
+      statusEl.textContent = `Status: ${s.status} | Progress: ${s.progressPct}% (${s.processedRows}/${s.totalRows})`;
+      statusEl.style.color = '#0f172a';
+
+      const e = (await app.api(`/api/v1/imports/${jobId}/errors?page=0&size=50&sort=createdAt,desc`, { method: 'GET', headers: {} })).data.items || [];
+      errEl.innerHTML = e.map((it)=>`<tr><td>${it.rowIndex}</td><td>${it.columnName}</td><td>${it.errorCode}</td><td>${it.errorMsg}</td></tr>`).join('');
+      if (!e.length) errEl.innerHTML = '<tr><td colspan="4">No errors</td></tr>';
+    } catch (err) {
+      statusEl.textContent = err.message;
+      statusEl.style.color = '#b91c1c';
+    }
+  }
+
+  panel.querySelector('#x_load').addEventListener('click', load);
+  if (initJob) await load();
+})();
+</script>
+</body></html>
