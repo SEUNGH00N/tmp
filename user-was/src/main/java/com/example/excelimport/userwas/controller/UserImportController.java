@@ -4,6 +4,7 @@ import com.example.excelimport.userwas.dto.ApiResponse;
 import com.example.excelimport.userwas.dto.UserImportCreateResponse;
 import com.example.excelimport.userwas.dto.UserImportErrorListResponse;
 import com.example.excelimport.userwas.dto.UserImportListResponse;
+import com.example.excelimport.userwas.dto.UserImportRowListResponse;
 import com.example.excelimport.userwas.dto.UserImportStatusResponse;
 import com.example.excelimport.userwas.service.UserImportService;
 import org.springframework.http.HttpStatus;
@@ -49,6 +50,15 @@ public class UserImportController {
             @PathVariable UUID jobId,
             @RequestParam("tenant_id") UUID tenantId) {
         return ApiResponse.success(userImportService.status(tenantId, jobId));
+    }
+
+    @GetMapping("/{jobId}/rows")
+    public ApiResponse<UserImportRowListResponse> rows(
+            @PathVariable UUID jobId,
+            @RequestParam("tenant_id") UUID tenantId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "50") int size) {
+        return ApiResponse.success(userImportService.rows(tenantId, jobId, page, size));
     }
 
     @GetMapping("/{jobId}/errors")

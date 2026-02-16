@@ -5,6 +5,8 @@ import com.example.excelimport.userwas.dto.UserImportErrorItem;
 import com.example.excelimport.userwas.dto.UserImportErrorListResponse;
 import com.example.excelimport.userwas.dto.UserImportListItem;
 import com.example.excelimport.userwas.dto.UserImportListResponse;
+import com.example.excelimport.userwas.dto.UserImportRowItem;
+import com.example.excelimport.userwas.dto.UserImportRowListResponse;
 import com.example.excelimport.userwas.dto.UserImportStatusResponse;
 import com.example.excelimport.userwas.exception.UserWasException;
 import com.example.excelimport.userwas.storage.UserFileStorageService;
@@ -25,10 +27,16 @@ public class UserImportService {
 
     private final JdbcTemplate jdbcTemplate;
     private final UserFileStorageService storageService;
+    private final UserImportProcessingService processingService;
 
-    public UserImportService(JdbcTemplate jdbcTemplate, UserFileStorageService storageService) {
+    public UserImportService(
+            JdbcTemplate jdbcTemplate,
+            UserFileStorageService storageService,
+            UserImportProcessingService processingService
+    ) {
         this.jdbcTemplate = jdbcTemplate;
         this.storageService = storageService;
+        this.processingService = processingService;
     }
 
     public UserImportCreateResponse create(UUID tenantId, MultipartFile file) {
@@ -44,11 +52,12 @@ public class UserImportService {
 
         UUID jobId = UUID.randomUUID();
         jdbcTemplate.update(
-                "insert into import_job (id, tenant_id, status, file_uri, total_rows, processed_rows, success_count, fail_count, error_log_uri, created_at, started_at, finished_at) values (?, ?, ?, ?, 0, 0, 0, 0, null, now(), null, null)",
+                "insert into import_job (id, tenant_id, status, file_uri, total_rows, processed_rows, success_count, fail_count, error_log_uri, created_at, started_at, finished_at) " +
+                        "values (?, ?, ?, ?, 0, 0, 0, 0, null, now(), null, null)",
                 jobId, tenantId, "CREATED", stored.fileUri()
         );
 
-        // Skeleton: publish event/queue for admin processing worker.
+        processingService.processAsync(jobId, stored.extension(), stored.fileUri());
         return new UserImportCreateResponse(jobId);
     }
 
@@ -93,17 +102,43 @@ public class UserImportService {
         return rows.get(0);
     }
 
+    public UserImportRowListResponse rows(UUID tenantId, UUID jobId, int page, int size) {
+        if (tenantId == null) throw new UserWasException(400, "tenant_id is required");
+        if (size < 1) size = 50;
+        if (page < 0) page = 0;
+
+        ensureJobOwned(tenantId, jobId);
+
+        Integer total = jdbcTemplate.queryForObject(
+                "select count(*) from excel_data d join import_job j on d.job_id = j.id where d.job_id = ? and j.tenant_id = ?",
+                Integer.class,
+                jobId, tenantId
+        );
+        int totalElements = total == null ? 0 : total;
+
+        List<UserImportRowItem> items = jdbcTemplate.query(
+                "select d.id, d.payload_json::text as payload_json, d.created_at " +
+                        "from excel_data d join import_job j on d.job_id = j.id " +
+                        "where d.job_id = ? and j.tenant_id = ? " +
+                        "order by d.created_at desc limit ? offset ?",
+                (rs, n) -> new UserImportRowItem(
+                        (UUID) rs.getObject("id"),
+                        rs.getString("payload_json"),
+                        rs.getTimestamp("created_at").toInstant()
+                ),
+                jobId, tenantId, size, page * size
+        );
+
+        int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
+        return new UserImportRowListResponse(items, page, size, totalElements, totalPages);
+    }
+
     public UserImportErrorListResponse errors(UUID tenantId, UUID jobId, int page, int size) {
         if (tenantId == null) throw new UserWasException(400, "tenant_id is required");
         if (size < 1) size = 50;
         if (page < 0) page = 0;
 
-        Integer exists = jdbcTemplate.queryForObject(
-                "select count(*) from import_job where id = ? and tenant_id = ?",
-                Integer.class,
-                jobId, tenantId
-        );
-        if (exists == null || exists == 0) throw new UserWasException(404, "job not found");
+        ensureJobOwned(tenantId, jobId);
 
         Integer total = jdbcTemplate.queryForObject(
                 "select count(*) from error_log e join import_job j on e.job_id = j.id where e.job_id = ? and j.tenant_id = ?",
@@ -129,6 +164,15 @@ public class UserImportService {
 
         int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
         return new UserImportErrorListResponse(items, page, size, totalElements, totalPages);
+    }
+
+    private void ensureJobOwned(UUID tenantId, UUID jobId) {
+        Integer exists = jdbcTemplate.queryForObject(
+                "select count(*) from import_job where id = ? and tenant_id = ?",
+                Integer.class,
+                jobId, tenantId
+        );
+        if (exists == null || exists == 0) throw new UserWasException(404, "job not found");
     }
 
     private static class ImportListMapper implements RowMapper<UserImportListItem> {

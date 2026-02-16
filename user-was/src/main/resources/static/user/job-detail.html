@@ -25,6 +25,23 @@
       </section>
 
       <section class="bg-white border rounded-xl overflow-hidden">
+        <div class="px-4 py-3 border-b font-semibold">Imported Rows</div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-slate-50 text-slate-600"><tr><th class="px-4 py-2 text-left">Row ID</th><th class="px-4 py-2 text-left">Payload</th><th class="px-4 py-2 text-left">Created</th></tr></thead>
+            <tbody>
+              <tr v-for="r in rows" :key="r.id" class="border-t align-top">
+                <td class="px-4 py-2 font-mono text-xs">{{ r.id }}</td>
+                <td class="px-4 py-2"><pre class="text-xs bg-slate-50 border rounded p-2 whitespace-pre-wrap break-all">{{ prettyPayload(r.payloadJson) }}</pre></td>
+                <td class="px-4 py-2">{{ fmt(r.createdAt) }}</td>
+              </tr>
+              <tr v-if="!rows.length"><td colspan="3" class="px-4 py-6 text-center text-slate-500">No imported rows</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="bg-white border rounded-xl overflow-hidden">
         <div class="px-4 py-3 border-b font-semibold">Validation Errors</div>
         <div class="overflow-x-auto">
           <table class="min-w-full text-sm">
@@ -50,7 +67,7 @@
   <script>
     Vue.createApp({
       data() {
-        return { tenantId: '', jobId: '', statusText: '', statusError: false, errors: [] };
+        return { tenantId: '', jobId: '', statusText: '', statusError: false, rows: [], errors: [] };
       },
       async mounted() {
         this.tenantId = UserApp.requireTenant();
@@ -61,6 +78,13 @@
       },
       methods: {
         fmt(v) { return UserApp.fmt(v); },
+        prettyPayload(v) {
+          try {
+            return JSON.stringify(JSON.parse(v || '{}'), null, 2);
+          } catch (e) {
+            return v || '-';
+          }
+        },
         async loadAll() {
           if (!this.jobId) return;
           try {
@@ -69,11 +93,15 @@
             this.statusError = false;
             this.statusText = `Status: ${d.status} | Progress: ${d.progressPct}% (${d.processedRows}/${d.totalRows})`;
 
+            const rowRes = await UserApp.api(`/api/v1/user/imports/${this.jobId}/rows?tenant_id=${encodeURIComponent(this.tenantId)}&page=0&size=50`, { method: 'GET' });
+            this.rows = rowRes.data.items || [];
+
             const err = await UserApp.api(`/api/v1/user/imports/${this.jobId}/errors?tenant_id=${encodeURIComponent(this.tenantId)}&page=0&size=50`, { method: 'GET' });
             this.errors = err.data.items || [];
           } catch (e) {
             this.statusError = true;
             this.statusText = e.message;
+            this.rows = [];
             this.errors = [];
           }
         }
