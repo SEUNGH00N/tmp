@@ -12,17 +12,22 @@ docker compose -f .\docker-compose.yml up -d
 
 ## Run app (PowerShell)
 ```powershell
+cd .\admin-was
 mvn spring-boot:run
 ```
 
 ## Multi-WAS structure
-- Admin WAS (this project root `pr`): port `8080`
+- Admin WAS (`pr/admin-was`): port `8080`
 - User WAS (`pr/user-was`): port `8081`
 - User WAS run:
 ```powershell
 cd .\user-was
 mvn spring-boot:run
 ```
+
+## Workspace note
+- `pr/src` is a legacy copy kept temporarily due IDE file locks during refactor.
+- Active admin WAS source path is `pr/admin-was/src`.
 
 ## Test
 ```powershell
@@ -70,7 +75,7 @@ mvn test
   - `10000000-0000-0000-0000-000000000001` (COMPLETED)
   - `10000000-0000-0000-0000-000000000002` (FAILED)
 
-## Migration policy
+## Migration policy (admin-was)
 - `V1__init.sql`: initial schema (`import_job`, `excel_data`, `error_log`, enum status)
 - `V2__auth_user.sql`: `app_user` table + default admin seed
 - `V3__seed_dummy_data.sql`: dev/demo seed data (users/jobs/rows/errors)
@@ -175,3 +180,4 @@ mvn test
 - [ ] 4.2.1 세션 기반 인증에서 토큰 기반 인증 전환 계획 수립
 - [ ] 4.2.2 Redis 역할 재정의 (cache/lock/session 분리)
 - [ ] 4.2.3 App 다중 인스턴스 + reverse proxy 구성
+
