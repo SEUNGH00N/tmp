@@ -8,12 +8,11 @@ import com.example.excelimport.dto.PagedExcelRowsResponse;
 import com.example.excelimport.dto.PagedErrorResponse;
 import com.example.excelimport.dto.PagedImportJobsResponse;
 import com.example.excelimport.entity.ImportJob;
-import com.example.excelimport.entity.ImportJobStatus;
 import com.example.excelimport.exception.ApiException;
 import com.example.excelimport.repository.ExcelRowDataRepository;
 import com.example.excelimport.repository.ImportErrorLogRepository;
 import com.example.excelimport.repository.ImportJobRepository;
-import com.example.excelimport.storage.FileStorageService;
+import com.example.excelimport.upload.UserUploadFacade;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -29,44 +28,21 @@ public class ImportJobService {
     private final ImportJobRepository importJobRepository;
     private final ImportErrorLogRepository importErrorLogRepository;
     private final ExcelRowDataRepository excelRowDataRepository;
-    private final FileStorageService fileStorageService;
-    private final ImportWorkerService importWorkerService;
+    private final UserUploadFacade userUploadFacade;
 
     public ImportJobService(ImportJobRepository importJobRepository,
                             ImportErrorLogRepository importErrorLogRepository,
                             ExcelRowDataRepository excelRowDataRepository,
-                            FileStorageService fileStorageService,
-                            ImportWorkerService importWorkerService) {
+                            UserUploadFacade userUploadFacade) {
         this.importJobRepository = importJobRepository;
         this.importErrorLogRepository = importErrorLogRepository;
         this.excelRowDataRepository = excelRowDataRepository;
-        this.fileStorageService = fileStorageService;
-        this.importWorkerService = importWorkerService;
+        this.userUploadFacade = userUploadFacade;
     }
 
     @Transactional
     public UUID createJob(UUID tenantId, MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new ApiException(HttpStatus.BAD_REQUEST,
-                    "https://example.com/problems/missing-file",
-                    "Bad Request",
-                    "file is required");
-        }
-
-        FileStorageService.StoredFile storedFile = fileStorageService.store(file, tenantId);
-
-        ImportJob job = new ImportJob();
-        job.setTenantId(tenantId);
-        job.setStatus(ImportJobStatus.CREATED);
-        job.setFileUri(storedFile.fileUri());
-        job.setTotalRows(0);
-        job.setProcessedRows(0);
-        job.setSuccessCount(0);
-        job.setFailCount(0);
-
-        ImportJob saved = importJobRepository.save(job);
-        importWorkerService.processAsync(saved.getId(), storedFile.extension());
-        return saved.getId();
+        return userUploadFacade.createImportJob(tenantId, file).jobId();
     }
 
     @Transactional(readOnly = true)

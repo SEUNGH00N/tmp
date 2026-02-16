@@ -1,383 +1,93 @@
 ﻿<!DOCTYPE html>
-
-<html class="light" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Excel Import Service - Job List</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#3c83f6",
-                        "background-light": "#f5f7f8",
-                        "background-dark": "#101722",
-                    },
-                    fontFamily: {
-                        "display": ["Inter"]
-                    },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-                },
-            },
-        }
-    </script>
-<style>
-        body { font-family: 'Inter', sans-serif; }
-        .material-symbols-outlined { font-size: 20px; }
-    </style>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job List - Excel Import</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
-<div class="flex min-h-screen">
-<!-- Sidebar -->
-<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col fixed h-full">
-<div class="p-6 flex items-center gap-3">
-<div class="bg-primary rounded-lg p-1.5 text-white flex items-center justify-center">
-<span class="material-symbols-outlined">grid_on</span>
-</div>
-<div>
-<h1 class="text-sm font-bold tracking-tight text-slate-900 dark:text-white uppercase">Excel Import</h1>
-<p class="text-[10px] text-slate-500 font-medium">ADMIN CONSOLE</p>
-</div>
-</div>
-<nav class="flex-1 px-4 space-y-1">
-<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors group" href="#">
-<span class="material-symbols-outlined group-hover:text-primary">dashboard</span>
-<span class="text-sm font-medium">Dashboard</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg transition-colors" href="#">
-<span class="material-symbols-outlined">history</span>
-<span class="text-sm font-medium">Job History</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors group" href="#">
-<span class="material-symbols-outlined group-hover:text-primary">settings</span>
-<span class="text-sm font-medium">Settings</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors group" href="#">
-<span class="material-symbols-outlined group-hover:text-primary">api</span>
-<span class="text-sm font-medium">API Docs</span>
-</a>
-</nav>
-<div class="p-4 border-t border-slate-200 dark:border-slate-800">
-<div class="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
-<div class="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">JD</div>
-<div class="flex-1 overflow-hidden">
-<p class="text-xs font-semibold truncate">Jane Doe</p>
-<p class="text-[10px] text-slate-500 truncate">Admin Account</p>
-</div>
-<span class="material-symbols-outlined text-slate-400 text-sm">unfold_more</span>
-</div>
-</div>
-</aside>
-<!-- Main Content -->
-<main class="flex-1 ml-64 flex flex-col">
-<!-- Navbar -->
-<header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-10 px-8 flex items-center justify-between">
-<div class="flex items-center gap-2 text-sm">
-<span class="text-slate-400">Home</span>
-<span class="material-symbols-outlined text-slate-300 text-xs">chevron_right</span>
-<span class="font-medium text-slate-900 dark:text-white">Jobs</span>
-</div>
-<div class="flex items-center gap-4">
-<button class="relative p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-<span class="material-symbols-outlined">notifications</span>
-<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
-</button>
-<div class="h-8 w-[1px] bg-slate-200 dark:border-slate-800"></div>
-<button class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 shadow-sm transition-all">
-<span class="material-symbols-outlined">upload</span>
-<span>New Import</span>
-</button>
-</div>
-</header>
-<!-- Content Area -->
-<div class="p-8 space-y-6">
-<div class="flex flex-col gap-1">
-<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Import Jobs</h2>
-<p class="text-slate-500 text-sm">Monitor and manage your active and past Excel data synchronization tasks.</p>
-</div>
-<!-- Filters -->
-<div class="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-<div class="flex flex-1 min-w-[300px] max-w-md items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-lg focus-within:ring-2 focus-within:ring-primary/50 transition-all">
-<span class="material-symbols-outlined text-slate-400">search</span>
-<input class="bg-transparent border-none focus:ring-0 text-sm w-full p-0 placeholder:text-slate-400" placeholder="Search by Job ID or Tenant ID..." type="text"/>
-</div>
-<div class="flex items-center gap-3">
-<select class="text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 focus:ring-primary focus:border-primary">
-<option>All Statuses</option>
-<option>Completed</option>
-<option>Processing</option>
-<option>Failed</option>
-<option>Pending</option>
-</select>
-<button class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">
-<span class="material-symbols-outlined">filter_list</span>
-                            More Filters
-                        </button>
-</div>
-</div>
-<!-- Table Card -->
-<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-<div class="overflow-x-auto">
-<table class="w-full text-left border-collapse">
-<thead>
-<tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
-<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Job ID</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tenant ID</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Progress</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Rows (T / P)</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Result</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Created At</th>
-<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
-</tr>
-</thead>
-<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-<!-- Row 1 - Completed -->
-<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 text-sm font-medium text-primary">#JOB-9421</td>
-<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">T-7201-94</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 uppercase">Completed</span>
-</td>
-<td class="px-6 py-4 min-w-[140px]">
-<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-<div class="bg-emerald-500 h-full rounded-full" style="width: 100%"></div>
-</div>
-<span class="text-[10px] text-slate-400 mt-1 block">100%</span>
-</td>
-<td class="px-6 py-4 text-sm">
-<span class="font-semibold text-slate-900 dark:text-white">12,500</span>
-<span class="text-slate-400">/ 12,500</span>
-</td>
-<td class="px-6 py-4 text-center">
-<div class="flex items-center justify-center gap-2 text-xs">
-<span class="text-emerald-500 font-bold">12,500</span>
-<span class="text-slate-300">|</span>
-<span class="text-slate-400">0</span>
-</div>
-</td>
-<td class="px-6 py-4 text-sm text-slate-500">Oct 24, 09:12</td>
-<td class="px-6 py-4 text-right">
-<button class="text-primary text-xs font-bold hover:underline">View Detail</button>
-</td>
-</tr>
-<!-- Row 2 - Processing -->
-<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 text-sm font-medium text-primary">#JOB-9422</td>
-<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">T-4402-AC</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 text-[10px] font-bold rounded-full bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 uppercase inline-flex items-center gap-1">
-<span class="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></span>
-                                            Processing
-                                        </span>
-</td>
-<td class="px-6 py-4 min-w-[140px]">
-<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-<div class="bg-primary h-full rounded-full" style="width: 64%"></div>
-</div>
-<span class="text-[10px] text-slate-400 mt-1 block">64%</span>
-</td>
-<td class="px-6 py-4 text-sm">
-<span class="font-semibold text-slate-900 dark:text-white">5,000</span>
-<span class="text-slate-400">/ 3,200</span>
-</td>
-<td class="px-6 py-4 text-center">
-<div class="flex items-center justify-center gap-2 text-xs">
-<span class="text-emerald-500 font-bold">3,192</span>
-<span class="text-slate-300">|</span>
-<span class="text-rose-500 font-bold">8</span>
-</div>
-</td>
-<td class="px-6 py-4 text-sm text-slate-500">Oct 24, 10:45</td>
-<td class="px-6 py-4 text-right">
-<button class="text-primary text-xs font-bold hover:underline">View Detail</button>
-</td>
-</tr>
-<!-- Row 3 - Failed -->
-<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 text-sm font-medium text-primary">#JOB-9423</td>
-<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">T-1100-BB</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 uppercase">Failed</span>
-</td>
-<td class="px-6 py-4 min-w-[140px]">
-<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-<div class="bg-rose-500 h-full rounded-full" style="width: 15%"></div>
-</div>
-<span class="text-[10px] text-rose-400 mt-1 block">Critical Error</span>
-</td>
-<td class="px-6 py-4 text-sm">
-<span class="font-semibold text-slate-900 dark:text-white">1,200</span>
-<span class="text-slate-400">/ 180</span>
-</td>
-<td class="px-6 py-4 text-center">
-<div class="flex items-center justify-center gap-2 text-xs">
-<span class="text-emerald-500 font-bold">0</span>
-<span class="text-slate-300">|</span>
-<span class="text-rose-500 font-bold">180</span>
-</div>
-</td>
-<td class="px-6 py-4 text-sm text-slate-500">Oct 24, 11:20</td>
-<td class="px-6 py-4 text-right">
-<button class="text-primary text-xs font-bold hover:underline">View Detail</button>
-</td>
-</tr>
-<!-- Row 4 - Pending -->
-<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 text-sm font-medium text-primary">#JOB-9424</td>
-<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">T-9923-FF</td>
-<td class="px-6 py-4">
-<span class="px-2 py-1 text-[10px] font-bold rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 uppercase">Pending</span>
-</td>
-<td class="px-6 py-4 min-w-[140px]">
-<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-<div class="bg-slate-300 dark:bg-slate-700 h-full rounded-full" style="width: 0%"></div>
-</div>
-<span class="text-[10px] text-slate-400 mt-1 block">Queued</span>
-</td>
-<td class="px-6 py-4 text-sm">
-<span class="font-semibold text-slate-900 dark:text-white">45,000</span>
-<span class="text-slate-400">/ 0</span>
-</td>
-<td class="px-6 py-4 text-center">
-<div class="flex items-center justify-center gap-2 text-xs text-slate-300">
-                                            -
-                                        </div>
-</td>
-<td class="px-6 py-4 text-sm text-slate-500">Oct 24, 12:05</td>
-<td class="px-6 py-4 text-right">
-<button class="text-primary text-xs font-bold hover:underline">View Detail</button>
-</td>
-</tr>
-<!-- Multi Mock Rows for fill (Loop equivalent) -->
-<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 text-sm font-medium text-primary">#JOB-9425</td>
-<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">T-5512-KL</td>
-<td class="px-6 py-4"><span class="px-2 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 uppercase">Completed</span></td>
-<td class="px-6 py-4"><div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden"><div class="bg-emerald-500 h-full w-full"></div></div></td>
-<td class="px-6 py-4 text-sm"><span class="font-semibold text-slate-900 dark:text-white">840</span><span class="text-slate-400"> / 840</span></td>
-<td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2 text-xs"><span class="text-emerald-500 font-bold">840</span><span class="text-slate-300">|</span><span class="text-slate-400">0</span></div></td>
-<td class="px-6 py-4 text-sm text-slate-500">Oct 23, 16:40</td>
-<td class="px-6 py-4 text-right"><button class="text-primary text-xs font-bold hover:underline">View Detail</button></td>
-</tr>
-<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 text-sm font-medium text-primary">#JOB-9426</td>
-<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">T-2231-PP</td>
-<td class="px-6 py-4"><span class="px-2 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 uppercase">Completed</span></td>
-<td class="px-6 py-4"><div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden"><div class="bg-emerald-500 h-full w-full"></div></div></td>
-<td class="px-6 py-4 text-sm"><span class="font-semibold text-slate-900 dark:text-white">2,100</span><span class="text-slate-400"> / 2,100</span></td>
-<td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2 text-xs"><span class="text-emerald-500 font-bold">2,100</span><span class="text-slate-300">|</span><span class="text-slate-400">0</span></div></td>
-<td class="px-6 py-4 text-sm text-slate-500">Oct 23, 14:15</td>
-<td class="px-6 py-4 text-right"><button class="text-primary text-xs font-bold hover:underline">View Detail</button></td>
-</tr>
-<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 text-sm font-medium text-primary">#JOB-9427</td>
-<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">T-0012-QQ</td>
-<td class="px-6 py-4"><span class="px-2 py-1 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 uppercase">Failed</span></td>
-<td class="px-6 py-4"><div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden"><div class="bg-rose-500 h-full w-[45%]"></div></div></td>
-<td class="px-6 py-4 text-sm"><span class="font-semibold text-slate-900 dark:text-white">10,000</span><span class="text-slate-400"> / 4,502</span></td>
-<td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2 text-xs"><span class="text-emerald-500 font-bold">3,900</span><span class="text-slate-300">|</span><span class="text-rose-500 font-bold">602</span></div></td>
-<td class="px-6 py-4 text-sm text-slate-500">Oct 23, 12:33</td>
-<td class="px-6 py-4 text-right"><button class="text-primary text-xs font-bold hover:underline">View Detail</button></td>
-</tr>
-<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 text-sm font-medium text-primary">#JOB-9428</td>
-<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">T-1142-EE</td>
-<td class="px-6 py-4"><span class="px-2 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 uppercase">Completed</span></td>
-<td class="px-6 py-4"><div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden"><div class="bg-emerald-500 h-full w-full"></div></div></td>
-<td class="px-6 py-4 text-sm"><span class="font-semibold text-slate-900 dark:text-white">65</span><span class="text-slate-400"> / 65</span></td>
-<td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2 text-xs"><span class="text-emerald-500 font-bold">65</span><span class="text-slate-300">|</span><span class="text-slate-400">0</span></div></td>
-<td class="px-6 py-4 text-sm text-slate-500">Oct 23, 10:01</td>
-<td class="px-6 py-4 text-right"><button class="text-primary text-xs font-bold hover:underline">View Detail</button></td>
-</tr>
-<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 text-sm font-medium text-primary">#JOB-9429</td>
-<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">T-9883-MM</td>
-<td class="px-6 py-4"><span class="px-2 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 uppercase">Completed</span></td>
-<td class="px-6 py-4"><div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden"><div class="bg-emerald-500 h-full w-full"></div></div></td>
-<td class="px-6 py-4 text-sm"><span class="font-semibold text-slate-900 dark:text-white">4,200</span><span class="text-slate-400"> / 4,200</span></td>
-<td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2 text-xs"><span class="text-emerald-500 font-bold">4,200</span><span class="text-slate-300">|</span><span class="text-slate-400">0</span></div></td>
-<td class="px-6 py-4 text-sm text-slate-500">Oct 22, 17:55</td>
-<td class="px-6 py-4 text-right"><button class="text-primary text-xs font-bold hover:underline">View Detail</button></td>
-</tr>
-<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-<td class="px-6 py-4 text-sm font-medium text-primary">#JOB-9430</td>
-<td class="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">T-1142-EE</td>
-<td class="px-6 py-4"><span class="px-2 py-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 uppercase">Completed</span></td>
-<td class="px-6 py-4"><div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden"><div class="bg-emerald-500 h-full w-full"></div></div></td>
-<td class="px-6 py-4 text-sm"><span class="font-semibold text-slate-900 dark:text-white">320</span><span class="text-slate-400"> / 320</span></td>
-<td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2 text-xs"><span class="text-emerald-500 font-bold">320</span><span class="text-slate-300">|</span><span class="text-slate-400">0</span></div></td>
-<td class="px-6 py-4 text-sm text-slate-500">Oct 22, 15:20</td>
-<td class="px-6 py-4 text-right"><button class="text-primary text-xs font-bold hover:underline">View Detail</button></td>
-</tr>
-</tbody>
-</table>
-</div>
-<!-- Pagination -->
-<div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-<div class="text-sm text-slate-500">
-                            Showing <span class="font-medium text-slate-900 dark:text-white">1</span> to <span class="font-medium text-slate-900 dark:text-white">10</span> of <span class="font-medium text-slate-900 dark:text-white">48</span> jobs
-                        </div>
-<div class="flex items-center gap-1">
-<button class="p-1 text-slate-400 hover:text-primary disabled:opacity-30" disabled="">
-<span class="material-symbols-outlined">chevron_left</span>
-</button>
-<button class="px-3 py-1 text-sm font-bold bg-primary text-white rounded-md">1</button>
-<button class="px-3 py-1 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 rounded-md">2</button>
-<button class="px-3 py-1 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 rounded-md">3</button>
-<span class="px-2 text-slate-400">...</span>
-<button class="px-3 py-1 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 rounded-md">5</button>
-<button class="p-1 text-slate-400 hover:text-primary">
-<span class="material-symbols-outlined">chevron_right</span>
-</button>
-</div>
-</div>
-</div>
-</div>
-</main>
-</div>
-<script src="/mock/app.js"></script>
-<script>
-(async () => {
-  const auth = await app.requireAuth();
-  if (!auth) return;
-  app.optimizeSidebar('jobs');
-  app.bindLogout();
+<body class="bg-slate-100 text-slate-800">
+  <div id="app" class="min-h-screen">
+    <header class="bg-white border-b">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <h1 class="text-xl font-bold">Import Jobs</h1>
+        <button @click="logout" class="px-3 py-1.5 text-sm border rounded">Logout</button>
+      </div>
+    </header>
 
-  const panel = app.mountFloatingPanel('Live Job List', `
-    <div style="font-size:12px;">
-      <div style="margin-bottom:8px;"><button id="x_prev" style="padding:6px 10px;">Prev</button> <button id="x_next" style="padding:6px 10px;">Next</button> <span id="x_page"></span></div>
-      <table style="width:100%;font-size:12px;border-collapse:collapse;">
-        <thead><tr><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Created</th><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Job</th><th style="text-align:left;border-bottom:1px solid #e2e8f0;">Status</th><th></th></tr></thead>
-        <tbody id="x_rows"></tbody>
-      </table>
+    <div class="max-w-7xl mx-auto px-4 py-4 grid grid-cols-12 gap-4">
+      <aside class="col-span-12 md:col-span-3 bg-white border rounded-xl p-3">
+        <nav class="space-y-1 text-sm font-medium">
+          <a href="/mock/dashboard.html" class="block px-3 py-2 rounded hover:bg-slate-100">Dashboard</a>
+          <a href="/mock/job-list.html" class="block px-3 py-2 rounded bg-blue-50 text-blue-700">Jobs</a>
+          <a href="/mock/settings.html" class="block px-3 py-2 rounded hover:bg-slate-100">Settings</a>
+        </nav>
+      </aside>
+
+      <main class="col-span-12 md:col-span-9 bg-white border rounded-xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="bg-slate-50 text-slate-600">
+              <tr>
+                <th class="text-left px-4 py-2">Created</th>
+                <th class="text-left px-4 py-2">Job ID</th>
+                <th class="text-left px-4 py-2">Tenant</th>
+                <th class="text-left px-4 py-2">Status</th>
+                <th class="text-left px-4 py-2">Progress</th>
+                <th class="text-left px-4 py-2">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="j in jobs" :key="j.jobId" class="border-t">
+                <td class="px-4 py-2">{{ fmt(j.createdAt) }}</td>
+                <td class="px-4 py-2 font-mono text-xs">{{ j.jobId }}</td>
+                <td class="px-4 py-2">{{ j.tenantId }}</td>
+                <td class="px-4 py-2">{{ j.status }}</td>
+                <td class="px-4 py-2">{{ j.progressPct }}% ({{ j.processedRows }}/{{ j.totalRows }})</td>
+                <td class="px-4 py-2"><a :href="`/mock/job-details.html?jobId=${j.jobId}`" class="text-blue-600 hover:underline">View</a></td>
+              </tr>
+              <tr v-if="!jobs.length"><td colspan="6" class="px-4 py-6 text-center text-slate-500">No jobs</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="px-4 py-3 border-t flex items-center justify-between text-sm">
+          <div>Page {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</div>
+          <div class="space-x-2">
+            <button @click="prev" :disabled="page===0" class="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
+            <button @click="next" :disabled="page+1>=totalPages" class="px-3 py-1 border rounded disabled:opacity-50">Next</button>
+          </div>
+        </div>
+      </main>
     </div>
-  `);
+  </div>
 
-  let page = 0;
-  const size = 15;
-  let totalPages = 0;
-  const pageEl = panel.querySelector('#x_page');
-  const rowsEl = panel.querySelector('#x_rows');
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="/mock/app.js"></script>
+  <script>
+    const { createApp } = Vue;
 
-  async function load() {
-    const res = await app.api(`/api/v1/imports?page=${page}&size=${size}&sort=createdAt,desc`, { method: 'GET', headers: {} });
-    const d = res.data;
-    totalPages = d.totalPages;
-    pageEl.textContent = `page ${d.page + 1} / ${Math.max(1,d.totalPages)}`;
-    rowsEl.innerHTML = (d.items || []).map((it) => `<tr><td style="padding:4px 0;">${app.formatDate(it.createdAt)}</td><td>${it.jobId.slice(0,8)}...</td><td>${it.status} (${it.progressPct}%)</td><td><a href="/mock/job-details.html?jobId=${it.jobId}">detail</a></td></tr>`).join('');
-    if (!(d.items || []).length) rowsEl.innerHTML = '<tr><td colspan="4">No jobs</td></tr>';
-  }
-
-  panel.querySelector('#x_prev').addEventListener('click', async () => { if (page > 0) { page -= 1; await load(); } });
-  panel.querySelector('#x_next').addEventListener('click', async () => { if (page + 1 < totalPages) { page += 1; await load(); } });
-
-  await load();
-})();
-</script>
-</body></html>
+    createApp({
+      data() {
+        return { jobs: [], page: 0, size: 20, totalPages: 0 };
+      },
+      async mounted() {
+        const auth = await ExcelApp.requireAuth();
+        if (!auth) return;
+        await this.load();
+      },
+      methods: {
+        fmt(v) { return ExcelApp.formatDate(v); },
+        async logout() { await ExcelApp.logout(); },
+        async load() {
+          const res = await ExcelApp.api(`/api/v1/imports?page=${this.page}&size=${this.size}&sort=createdAt,desc`, { method: 'GET' });
+          this.jobs = res.data.items || [];
+          this.totalPages = res.data.totalPages || 0;
+        },
+        async prev() { if (this.page > 0) { this.page--; await this.load(); } },
+        async next() { if (this.page + 1 < this.totalPages) { this.page++; await this.load(); } }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

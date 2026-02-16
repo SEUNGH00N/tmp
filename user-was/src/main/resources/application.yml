@@ -1,0 +1,14 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/exceldb
+    username: excel
+    password: excel
+  flyway:
+    enabled: false
+
+app:
+  storage:
+    root: ./storage

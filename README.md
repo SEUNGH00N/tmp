@@ -15,6 +15,15 @@ docker compose -f .\docker-compose.yml up -d
 mvn spring-boot:run
 ```
 
+## Multi-WAS structure
+- Admin WAS (this project root `pr`): port `8080`
+- User WAS (`pr/user-was`): port `8081`
+- User WAS run:
+```powershell
+cd .\user-was
+mvn spring-boot:run
+```
+
 ## Test
 ```powershell
 mvn test
@@ -23,7 +32,8 @@ mvn test
 ## Login
 - Access: `http://localhost:8080`
 - Default credentials: `admin` / `admin1234`
-- Credentials are seeded by Flyway migrations (`V2__auth_user.sql`, `V3__seed_dummy_data.sql`)
+- Default admin is seeded by `V2__auth_user.sql`
+- Additional demo users are seeded by `V3__seed_dummy_data.sql`
 
 ## API
 - `POST /api/v1/auth/login`
@@ -37,6 +47,22 @@ mvn test
 - `GET /api/v1/users?page=0&size=20`
 - `GET /api/v1/settings`
 - `PUT /api/v1/settings`
+
+## Upload backend skeleton
+- `ImportController` -> `ImportJobService.createJob(...)`
+- `ImportJobService` -> `UserUploadFacade`
+- `UserUploadFacade` orchestration flow:
+  - `UploadGuard` (request/policy validation)
+  - `UploadStoragePort` (file persistence; local FS adapter)
+  - `ImportJobDispatchPort` (job creation + async dispatch)
+- Current adapters:
+  - `DefaultUploadGuard`
+  - `LocalUploadStorageAdapter`
+  - `JpaImportJobDispatchAdapter`
+- Extension points prepared for production:
+  - quota/tenant policy checks
+  - antivirus/content signature checks
+  - dedup/outbox/audit pipeline integration
 
 ## Seed data (V3)
 - Users: `admin`, `operator`, `viewer`
@@ -68,6 +94,12 @@ mvn test
 - `GET /mock/job-list.html`
 - `GET /mock/job-details.html`
 - `GET /mock/settings.html`
+
+## Frontend stack
+- Vue: `Vue 3` CDN build (`https://unpkg.com/vue@3/dist/vue.global.prod.js`)
+- Styling: Tailwind CSS CDN
+- Auth/session: cookie-based session (`/api/v1/auth/*`)
+- API binding: pages render API data directly in main content (no floating debug/live panel)
 
 ## Notes
 - CSV/XLSX supported.
