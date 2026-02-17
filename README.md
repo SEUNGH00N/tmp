@@ -72,3 +72,22 @@ mvn spring-boot:run
 - Schema inference/versioning for uploaded datasets
 - Large-file performance tuning and streaming strategy
 - Storage cleanup scheduler and operational health checks
+
+## Next Additions (Post-Current Implementation)
+- Split account domains clearly:
+  - `admin_user` for admin authentication/operations
+  - `tenant_user` for end-user portal authentication
+- Extend approval workflow before DDL execution:
+  - `SELF_APPROVAL`, `ADMIN_APPROVAL`, `DUAL_APPROVAL`
+  - policy at organization/workspace level
+- Add schema draft lifecycle:
+  - dataset profiling
+  - editable schema draft
+  - schema version freeze after approval
+- Add DDL/ERD pipeline:
+  - DDL plan generation
+  - controlled execution and rollback policy
+  - ERD export (`mermaid`, SQL DDL)
+- Strengthen observability:
+  - request/job/tenant correlated logs
+  - pipeline metrics and failure alarms

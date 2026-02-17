@@ -1,93 +1,63 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html class="light" lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Job Detail - Excel Import</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Job Detail - Excel Import Service</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script>tailwind.config={theme:{extend:{colors:{primary:'#ec5b13','bg-light':'#f8f6f6'},fontFamily:{display:['Public Sans']}}}}</script>
+  <style> body { font-family: 'Public Sans', sans-serif; } .active-nav { background:#ec5b13; color:#fff; } </style>
 </head>
-<body class="bg-slate-100 text-slate-800">
-  <div id="app" class="min-h-screen">
-    <header class="bg-white border-b">
-      <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <h1 class="text-xl font-bold">Job Detail</h1>
-        <button @click="logout" class="px-3 py-1.5 text-sm border rounded">Logout</button>
-      </div>
-    </header>
+<body class="bg-bg-light font-display text-slate-800">
+  <div id="app" class="h-screen flex overflow-hidden">
+    <aside class="w-64 bg-[#1a110c] text-white flex flex-col shrink-0">
+      <div class="p-6 flex items-center gap-3"><div class="bg-primary rounded-lg p-2"><span class="material-symbols-outlined">grid_on</span></div><div><h1 class="text-sm font-bold">ImportService</h1><p class="text-[10px] text-primary uppercase tracking-widest">Admin Panel</p></div></div>
+      <nav class="flex-1 px-4 space-y-2">
+        <a href="/mock/dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="text-sm font-medium">Dashboard</span></a>
+        <a href="/mock/job-list.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl active-nav"><span class="material-symbols-outlined text-[20px]">history</span><span class="text-sm font-medium">Jobs</span></a>
+        <a href="/mock/settings.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">settings</span><span class="text-sm font-medium">Settings</span></a>
+        <a href="/mock/admin-users.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">group</span><span class="text-sm font-medium">Admin Users</span></a>
+        <a href="/mock/admin-roles.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">verified_user</span><span class="text-sm font-medium">Roles</span></a>
+      </nav>
+    </aside>
 
-    <div class="max-w-7xl mx-auto px-4 py-4 grid grid-cols-12 gap-4">
-      <aside class="col-span-12 md:col-span-3 bg-white border rounded-xl p-3">
-        <nav class="space-y-1 text-sm font-medium">
-          <a href="/mock/dashboard.html" class="block px-3 py-2 rounded hover:bg-slate-100">Dashboard</a>
-          <a href="/mock/job-list.html" class="block px-3 py-2 rounded bg-blue-50 text-blue-700">Jobs</a>
-          <a href="/mock/settings.html" class="block px-3 py-2 rounded hover:bg-slate-100">Settings</a>
-        </nav>
-      </aside>
-
-      <main class="col-span-12 md:col-span-9 space-y-4">
+    <main class="flex-1 flex flex-col overflow-hidden">
+      <header class="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between"><h2 class="text-lg font-bold">Job Detail</h2><button @click="logout" class="px-3 py-2 rounded-xl border text-sm">Logout</button></header>
+      <div class="flex-1 overflow-y-auto p-8 space-y-6">
         <section class="bg-white border rounded-xl p-4">
           <div class="flex gap-2 items-center">
-            <input v-model="jobId" placeholder="Job UUID" class="flex-1 border rounded-lg px-3 py-2" />
-            <button @click="loadAll" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Load</button>
+            <input v-model="jobId" placeholder="Job UUID" class="flex-1 rounded-xl border-slate-300 focus:border-primary focus:ring-primary" />
+            <button @click="loadAll" class="px-4 py-2.5 rounded-xl bg-primary text-white font-semibold">Load</button>
           </div>
           <p class="mt-3 text-sm" :class="statusError ? 'text-red-600' : 'text-slate-700'">{{ statusText }}</p>
         </section>
 
-        <section class="bg-white border rounded-xl overflow-hidden">
+        <section class="bg-white rounded-xl border overflow-hidden">
           <div class="px-4 py-3 border-b font-semibold">Errors</div>
           <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
-              <thead class="bg-slate-50 text-slate-600">
-                <tr><th class="px-4 py-2 text-left">Row</th><th class="px-4 py-2 text-left">Column</th><th class="px-4 py-2 text-left">Code</th><th class="px-4 py-2 text-left">Message</th></tr>
-              </thead>
-              <tbody>
-                <tr v-for="e in errors" :key="`${e.rowIndex}-${e.columnName}-${e.errorCode}`" class="border-t">
-                  <td class="px-4 py-2">{{ e.rowIndex }}</td><td class="px-4 py-2">{{ e.columnName }}</td><td class="px-4 py-2">{{ e.errorCode }}</td><td class="px-4 py-2">{{ e.errorMsg }}</td>
-                </tr>
-                <tr v-if="!errors.length"><td colspan="4" class="px-4 py-6 text-center text-slate-500">No errors</td></tr>
-              </tbody>
-            </table>
+            <table class="min-w-full text-sm"><thead class="bg-slate-50 text-slate-500 text-xs uppercase"><tr><th class="px-4 py-3 text-left">Row</th><th class="px-4 py-3 text-left">Column</th><th class="px-4 py-3 text-left">Code</th><th class="px-4 py-3 text-left">Message</th></tr></thead><tbody><tr v-for="e in errors" :key="`${e.rowIndex}-${e.columnName}-${e.errorCode}`" class="border-t hover:bg-slate-50"><td class="px-4 py-3">{{ e.rowIndex }}</td><td class="px-4 py-3">{{ e.columnName }}</td><td class="px-4 py-3">{{ e.errorCode }}</td><td class="px-4 py-3">{{ e.errorMsg }}</td></tr><tr v-if="!errors.length"><td colspan="4" class="px-4 py-6 text-center text-slate-500">No errors</td></tr></tbody></table>
           </div>
         </section>
 
-        <section class="bg-white border rounded-xl overflow-hidden">
+        <section class="bg-white rounded-xl border overflow-hidden">
           <div class="px-4 py-3 border-b font-semibold">Rows</div>
           <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
-              <thead class="bg-slate-50 text-slate-600">
-                <tr><th class="px-4 py-2 text-left">Row ID</th><th class="px-4 py-2 text-left">Payload JSON</th><th class="px-4 py-2 text-left">Created</th></tr>
-              </thead>
-              <tbody>
-                <tr v-for="r in rows" :key="r.id" class="border-t align-top">
-                  <td class="px-4 py-2 font-mono text-xs">{{ r.id }}</td>
-                  <td class="px-4 py-2"><pre class="whitespace-pre-wrap text-xs">{{ r.payloadJson }}</pre></td>
-                  <td class="px-4 py-2">{{ fmt(r.createdAt) }}</td>
-                </tr>
-                <tr v-if="!rows.length"><td colspan="3" class="px-4 py-6 text-center text-slate-500">No rows</td></tr>
-              </tbody>
-            </table>
+            <table class="min-w-full text-sm"><thead class="bg-slate-50 text-slate-500 text-xs uppercase"><tr><th class="px-4 py-3 text-left">Row ID</th><th class="px-4 py-3 text-left">Payload JSON</th><th class="px-4 py-3 text-left">Created</th></tr></thead><tbody><tr v-for="r in rows" :key="r.id" class="border-t"><td class="px-4 py-3 font-mono text-xs">{{ r.id }}</td><td class="px-4 py-3"><pre class="whitespace-pre-wrap text-xs">{{ r.payloadJson }}</pre></td><td class="px-4 py-3">{{ fmt(r.createdAt) }}</td></tr><tr v-if="!rows.length"><td colspan="3" class="px-4 py-6 text-center text-slate-500">No rows</td></tr></tbody></table>
           </div>
         </section>
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <script src="/mock/app.js"></script>
   <script>
     const { createApp } = Vue;
-
     createApp({
-      data() {
-        return { jobId: '', statusText: '', statusError: false, errors: [], rows: [] };
-      },
-      async mounted() {
-        const auth = await ExcelApp.requireAuth();
-        if (!auth) return;
-        const params = new URLSearchParams(window.location.search);
-        this.jobId = params.get('jobId') || '';
-        if (this.jobId) await this.loadAll();
-      },
+      data() { return { jobId: '', statusText: '', statusError: false, errors: [], rows: [] }; },
+      async mounted() { const auth = await ExcelApp.requireAuth(); if (!auth) return; const p = new URLSearchParams(window.location.search); this.jobId = p.get('jobId') || ''; if (this.jobId) await this.loadAll(); },
       methods: {
         fmt(v) { return ExcelApp.formatDate(v); },
         async logout() { await ExcelApp.logout(); },
@@ -96,19 +66,11 @@
           this.statusError = false;
           try {
             const s = await ExcelApp.api(`/api/v1/imports/${this.jobId}`, { method: 'GET' });
-            const d = s.data;
-            this.statusText = `Status: ${d.status} | Progress: ${d.progressPct}% (${d.processedRows}/${d.totalRows})`;
-
-            const e = await ExcelApp.api(`/api/v1/imports/${this.jobId}/errors?page=0&size=50&sort=createdAt,desc`, { method: 'GET' });
-            this.errors = e.data.items || [];
-
-            const r = await ExcelApp.api(`/api/v1/imports/${this.jobId}/rows?page=0&size=50&sort=createdAt,desc`, { method: 'GET' });
-            this.rows = r.data.items || [];
+            const d = s.data; this.statusText = `Status: ${d.status} | Progress: ${d.progressPct}% (${d.processedRows}/${d.totalRows})`;
+            const e = await ExcelApp.api(`/api/v1/imports/${this.jobId}/errors?page=0&size=50&sort=createdAt,desc`, { method: 'GET' }); this.errors = e.data.items || [];
+            const r = await ExcelApp.api(`/api/v1/imports/${this.jobId}/rows?page=0&size=50&sort=createdAt,desc`, { method: 'GET' }); this.rows = r.data.items || [];
           } catch (err) {
-            this.statusError = true;
-            this.statusText = err.message;
-            this.errors = [];
-            this.rows = [];
+            this.statusError = true; this.statusText = err.message; this.errors = []; this.rows = [];
           }
         }
       }

@@ -49,3 +49,23 @@ mvn spring-boot:run
 - `../upload_template_cases.xlsx`
   - `success_case`
   - `error_case`
+
+## Additional Work Needed
+- End-user authentication model:
+  - introduce `tenant_user` (email/password or SSO) instead of tenant-id-only login
+  - bind user identity to tenant/workspace policy
+- Schema draft UX before DB apply:
+  - inferred column types preview
+  - user editable constraints/options
+  - submit approval request flow
+- Upload/processing robustness:
+  - dedup policy by checksum
+  - retry strategy and resumable processing states
+  - large-file streaming/chunk support
+- Detail UX improvement:
+  - error export
+  - field-level issue highlighting
+  - progress polling standardization
+- Data pipeline extension:
+  - `import_job_event` and `import_job_metric`
+  - summary endpoint for processing insights

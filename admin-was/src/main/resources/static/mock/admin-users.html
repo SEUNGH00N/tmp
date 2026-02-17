@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Users - Excel Import Service</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script>tailwind.config={theme:{extend:{colors:{primary:'#ec5b13','bg-light':'#f8f6f6'},fontFamily:{display:['Public Sans']}}}}</script>
+  <style> body { font-family: 'Public Sans', sans-serif; } .active-nav { background:#ec5b13; color:#fff; } </style>
+</head>
+<body class="bg-bg-light font-display text-slate-800">
+  <div id="app" class="h-screen flex overflow-hidden">
+    <aside class="w-64 bg-[#1a110c] text-white flex flex-col shrink-0">
+      <div class="p-6 flex items-center gap-3"><div class="bg-primary rounded-lg p-2"><span class="material-symbols-outlined">grid_on</span></div><div><h1 class="text-sm font-bold">ImportService</h1><p class="text-[10px] text-primary uppercase tracking-widest">Admin Panel</p></div></div>
+      <nav class="flex-1 px-4 space-y-2">
+        <a href="/mock/dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="text-sm font-medium">Dashboard</span></a>
+        <a href="/mock/job-list.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">history</span><span class="text-sm font-medium">Jobs</span></a>
+        <a href="/mock/settings.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">settings</span><span class="text-sm font-medium">Settings</span></a>
+        <a href="/mock/admin-users.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl active-nav"><span class="material-symbols-outlined text-[20px]">group</span><span class="text-sm font-medium">Admin Users</span></a>
+        <a href="/mock/admin-roles.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">verified_user</span><span class="text-sm font-medium">Roles</span></a>
+      </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-hidden">
+      <header class="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between"><h2 class="text-lg font-bold">Admin Users</h2><button @click="logout" class="px-3 py-2 rounded-xl border text-sm">Logout</button></header>
+      <div class="flex-1 overflow-y-auto p-8 space-y-4">
+        <section class="bg-white border rounded-xl p-4">
+          <div class="flex items-center justify-between">
+            <h2 class="font-semibold">User Management</h2>
+            <button @click="loadAll" class="px-3 py-1.5 text-sm border rounded">Refresh</button>
+          </div>
+          <p class="mt-2 text-sm text-slate-500">Manage account active status and role assignments.</p>
+          <p v-if="message" class="mt-2 text-sm" :class="msgError ? 'text-red-600' : 'text-emerald-600'">{{ message }}</p>
+        </section>
+
+        <section class="bg-white border rounded-xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead class="bg-slate-50 text-slate-500 text-xs uppercase">
+                <tr><th class="px-4 py-3 text-left">Username</th><th class="px-4 py-3 text-left">Display Name</th><th class="px-4 py-3 text-left">Roles</th><th class="px-4 py-3 text-left">Active</th><th class="px-4 py-3 text-left">Created</th><th class="px-4 py-3 text-left">Actions</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="u in users" :key="u.id" class="border-t hover:bg-slate-50 align-top">
+                  <td class="px-4 py-3">{{ u.username }}</td>
+                  <td class="px-4 py-3">{{ u.displayName }}</td>
+                  <td class="px-4 py-3"><div class="flex flex-wrap gap-1"><span v-for="r in u.roles" :key="`${u.id}-${r}`" class="px-2 py-0.5 text-xs rounded bg-bg-light border">{{ r }}</span><span v-if="!u.roles || !u.roles.length" class="text-slate-400 text-xs">No roles</span></div></td>
+                  <td class="px-4 py-3"><span class="px-2 py-0.5 text-xs rounded border" :class="u.active ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'">{{ u.active ? 'ACTIVE' : 'INACTIVE' }}</span></td>
+                  <td class="px-4 py-3">{{ fmt(u.createdAt) }}</td>
+                  <td class="px-4 py-3 space-x-2"><button @click="toggleStatus(u)" class="px-2 py-1 text-xs border rounded">{{ u.active ? 'Deactivate' : 'Activate' }}</button><button @click="openRoleModal(u)" class="px-2 py-1 text-xs border rounded bg-primary text-white border-primary">Assign Roles</button></td>
+                </tr>
+                <tr v-if="!users.length"><td colspan="6" class="px-4 py-6 text-center text-slate-500">No users</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="px-4 py-3 border-t flex items-center justify-between text-sm"><div>Page {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</div><div class="space-x-2"><button @click="prev" :disabled="page===0" class="px-3 py-1 border rounded disabled:opacity-50">Prev</button><button @click="next" :disabled="page+1>=totalPages" class="px-3 py-1 border rounded disabled:opacity-50">Next</button></div></div>
+        </section>
+      </div>
+    </main>
+
+    <div v-if="roleModal.open" class="fixed inset-0 bg-slate-900/30 flex items-center justify-center p-4">
+      <div class="w-full max-w-lg bg-white rounded-xl border shadow-xl">
+        <div class="px-4 py-3 border-b flex items-center justify-between"><h3 class="font-semibold">Assign Roles: {{ roleModal.username }}</h3><button @click="closeRoleModal" class="text-slate-500">Close</button></div>
+        <div class="p-4 space-y-2"><label v-for="r in roles" :key="r.code" class="flex items-center gap-2 text-sm"><input type="checkbox" :value="r.code" v-model="roleModal.selected" /><span class="font-medium">{{ r.code }}</span><span class="text-slate-500">{{ r.name }}</span></label></div>
+        <div class="px-4 py-3 border-t flex justify-end gap-2"><button @click="closeRoleModal" class="px-3 py-1.5 border rounded">Cancel</button><button @click="saveRoles" class="px-3 py-1.5 bg-primary text-white rounded">Save</button></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="/mock/app.js"></script>
+  <script>
+    const { createApp } = Vue;
+    createApp({
+      data() { return { users: [], roles: [], page: 0, size: 20, totalPages: 0, message: '', msgError: false, roleModal: { open: false, userId: '', username: '', selected: [] } }; },
+      async mounted() { const auth = await ExcelApp.requireAuth(); if (!auth) return; await this.loadAll(); },
+      methods: {
+        fmt(v) { return ExcelApp.formatDate(v); },
+        async logout() { await ExcelApp.logout(); },
+        async loadAll() { await Promise.all([this.loadUsers(), this.loadRoles()]); },
+        async loadUsers() { const res = await ExcelApp.api(`/api/v1/admin/users?page=${this.page}&size=${this.size}`, { method: 'GET' }); this.users = res.data.items || []; this.totalPages = res.data.totalPages || 0; },
+        async loadRoles() { const res = await ExcelApp.api('/api/v1/admin/roles', { method: 'GET' }); this.roles = res.data || []; },
+        async toggleStatus(user) { this.message = ''; try { await ExcelApp.api(`/api/v1/admin/users/${user.id}/status`, { method: 'PUT', body: JSON.stringify({ active: !user.active }) }); this.msgError = false; this.message = `Updated status for ${user.username}`; await this.loadUsers(); } catch (e) { this.msgError = true; this.message = e.message; } },
+        openRoleModal(user) { this.roleModal = { open: true, userId: user.id, username: user.username, selected: [...(user.roles || [])] }; },
+        closeRoleModal() { this.roleModal = { open: false, userId: '', username: '', selected: [] }; },
+        async saveRoles() { this.message = ''; try { await ExcelApp.api(`/api/v1/admin/users/${this.roleModal.userId}/roles`, { method: 'PUT', body: JSON.stringify({ roleCodes: this.roleModal.selected }) }); this.msgError = false; this.message = `Updated roles for ${this.roleModal.username}`; this.closeRoleModal(); await this.loadUsers(); } catch (e) { this.msgError = true; this.message = e.message; } },
+        async prev() { if (this.page > 0) { this.page--; await this.loadUsers(); } },
+        async next() { if (this.page + 1 < this.totalPages) { this.page++; await this.loadUsers(); } }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

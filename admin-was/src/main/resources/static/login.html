@@ -1,68 +1,69 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html class="light" lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login - Excel Import</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Admin Login - Excel Import Service</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#ec5b13', 'bg-light': '#f8f6f6' },
+          fontFamily: { display: ['Public Sans'] },
+        }
+      }
+    }
+  </script>
+  <style> body { font-family: 'Public Sans', sans-serif; } </style>
 </head>
-<body class="min-h-screen bg-slate-100 flex items-center justify-center">
-  <div id="app" class="w-full max-w-sm bg-white rounded-xl shadow-lg p-6">
-    <h1 class="text-2xl font-bold">Excel Import</h1>
-    <p class="text-sm text-slate-500 mt-1">Sign in to continue</p>
-
-    <form class="mt-5 space-y-3" @submit.prevent="submitLogin">
-      <div>
-        <label class="text-sm font-medium">Username</label>
-        <input v-model="username" class="mt-1 w-full border rounded-lg px-3 py-2" required />
+<body class="min-h-screen bg-bg-light font-display">
+  <div id="app" class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl p-8">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="bg-primary rounded-lg p-2 text-white leading-none"><span class="material-symbols-outlined">grid_on</span></div>
+        <div>
+          <h1 class="text-lg font-bold">ImportService</h1>
+          <p class="text-xs text-slate-500">Admin Panel Login</p>
+        </div>
       </div>
-      <div>
-        <label class="text-sm font-medium">Password</label>
-        <input v-model="password" type="password" class="mt-1 w-full border rounded-lg px-3 py-2" required />
-      </div>
-      <button :disabled="loading" class="w-full bg-blue-600 text-white rounded-lg py-2 font-semibold disabled:opacity-60">
-        {{ loading ? 'Signing in...' : 'Login' }}
-      </button>
-      <p class="text-sm" :class="messageError ? 'text-red-600' : 'text-emerald-600'">{{ message }}</p>
-    </form>
 
-    <p class="text-xs text-slate-500 mt-2">Default: admin / admin1234</p>
+      <form class="space-y-4" @submit.prevent="submitLogin">
+        <div>
+          <label class="text-sm font-semibold">Username</label>
+          <input v-model="username" class="mt-1 w-full rounded-xl border-slate-300 focus:border-primary focus:ring-primary" required />
+        </div>
+        <div>
+          <label class="text-sm font-semibold">Password</label>
+          <input v-model="password" type="password" class="mt-1 w-full rounded-xl border-slate-300 focus:border-primary focus:ring-primary" required />
+        </div>
+        <button :disabled="loading" class="w-full rounded-xl bg-primary hover:bg-primary/90 text-white py-2.5 font-bold disabled:opacity-60">
+          {{ loading ? 'Signing in...' : 'Login' }}
+        </button>
+        <p class="text-sm" :class="messageError ? 'text-red-600' : 'text-emerald-600'">{{ message }}</p>
+      </form>
+      <p class="text-xs text-slate-500 mt-3">Default: admin / admin1234</p>
+    </div>
   </div>
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <script src="/mock/app.js"></script>
   <script>
     const { createApp } = Vue;
-
     createApp({
-      data() {
-        return {
-          username: 'admin',
-          password: 'admin1234',
-          loading: false,
-          message: '',
-          messageError: false
-        };
-      },
-      async mounted() {
-        await ExcelApp.ensureGuest();
-      },
+      data() { return { username: 'admin', password: 'admin1234', loading: false, message: '', messageError: false }; },
+      async mounted() { await ExcelApp.ensureGuest(); },
       methods: {
         async submitLogin() {
-          this.loading = true;
-          this.message = '';
+          this.loading = true; this.message = '';
           try {
-            await ExcelApp.api('/api/v1/auth/login', {
-              method: 'POST',
-              body: JSON.stringify({ username: this.username, password: this.password })
-            });
+            await ExcelApp.api('/api/v1/auth/login', { method: 'POST', body: JSON.stringify({ username: this.username, password: this.password }) });
             window.location.href = '/mock/dashboard.html';
           } catch (e) {
-            this.message = e.message;
-            this.messageError = true;
-          } finally {
-            this.loading = false;
-          }
+            this.message = e.message; this.messageError = true;
+          } finally { this.loading = false; }
         }
       }
     }).mount('#app');

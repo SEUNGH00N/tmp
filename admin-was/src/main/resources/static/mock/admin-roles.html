@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roles - Excel Import Service</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script>tailwind.config={theme:{extend:{colors:{primary:'#ec5b13','bg-light':'#f8f6f6'},fontFamily:{display:['Public Sans']}}}}</script>
+  <style> body { font-family: 'Public Sans', sans-serif; } .active-nav { background:#ec5b13; color:#fff; } </style>
+</head>
+<body class="bg-bg-light font-display text-slate-800">
+  <div id="app" class="h-screen flex overflow-hidden">
+    <aside class="w-64 bg-[#1a110c] text-white flex flex-col shrink-0">
+      <div class="p-6 flex items-center gap-3"><div class="bg-primary rounded-lg p-2"><span class="material-symbols-outlined">grid_on</span></div><div><h1 class="text-sm font-bold">ImportService</h1><p class="text-[10px] text-primary uppercase tracking-widest">Admin Panel</p></div></div>
+      <nav class="flex-1 px-4 space-y-2">
+        <a href="/mock/dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="text-sm font-medium">Dashboard</span></a>
+        <a href="/mock/job-list.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">history</span><span class="text-sm font-medium">Jobs</span></a>
+        <a href="/mock/settings.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">settings</span><span class="text-sm font-medium">Settings</span></a>
+        <a href="/mock/admin-users.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">group</span><span class="text-sm font-medium">Admin Users</span></a>
+        <a href="/mock/admin-roles.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl active-nav"><span class="material-symbols-outlined text-[20px]">verified_user</span><span class="text-sm font-medium">Roles</span></a>
+      </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-hidden">
+      <header class="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between"><h2 class="text-lg font-bold">Role Management</h2><button @click="logout" class="px-3 py-2 rounded-xl border text-sm">Logout</button></header>
+      <div class="flex-1 overflow-y-auto p-8 space-y-4">
+        <section class="bg-white border rounded-xl p-4"><div class="flex items-center justify-between"><h2 class="font-semibold">Roles</h2><button @click="loadRoles" class="px-3 py-1.5 text-sm border rounded">Refresh</button></div><p class="mt-2 text-sm text-slate-500">Role assignment is managed from the Admin Users page.</p></section>
+        <section class="bg-white border rounded-xl overflow-hidden"><div class="overflow-x-auto"><table class="min-w-full text-sm"><thead class="bg-slate-50 text-slate-500 text-xs uppercase"><tr><th class="px-4 py-3 text-left">Code</th><th class="px-4 py-3 text-left">Name</th><th class="px-4 py-3 text-left">Description</th><th class="px-4 py-3 text-left">Users</th><th class="px-4 py-3 text-left">Active</th></tr></thead><tbody><tr v-for="r in roles" :key="r.id" class="border-t hover:bg-slate-50"><td class="px-4 py-3 font-mono text-xs">{{ r.code }}</td><td class="px-4 py-3">{{ r.name }}</td><td class="px-4 py-3 text-slate-600">{{ r.description || '-' }}</td><td class="px-4 py-3">{{ r.userCount }}</td><td class="px-4 py-3"><span class="px-2 py-0.5 text-xs rounded border" :class="r.active ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'">{{ r.active ? 'ACTIVE' : 'INACTIVE' }}</span></td></tr><tr v-if="!roles.length"><td colspan="5" class="px-4 py-6 text-center text-slate-500">No roles</td></tr></tbody></table></div></section>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="/mock/app.js"></script>
+  <script>
+    const { createApp } = Vue;
+    createApp({
+      data() { return { roles: [] }; },
+      async mounted() { const auth = await ExcelApp.requireAuth(); if (!auth) return; await this.loadRoles(); },
+      methods: {
+        async logout() { await ExcelApp.logout(); },
+        async loadRoles() { const res = await ExcelApp.api('/api/v1/admin/roles', { method: 'GET' }); this.roles = res.data || []; }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

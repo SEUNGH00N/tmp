@@ -1,4 +1,4 @@
-package com.example.excelimport.config;
+package com.example.excelimport.common.web;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

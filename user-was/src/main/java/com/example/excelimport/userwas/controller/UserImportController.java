@@ -1,6 +1,6 @@
 package com.example.excelimport.userwas.controller;
 
-import com.example.excelimport.userwas.dto.ApiResponse;
+import com.example.excelimport.common.web.ApiResponse;
 import com.example.excelimport.userwas.dto.UserImportCreateResponse;
 import com.example.excelimport.userwas.dto.UserImportErrorListResponse;
 import com.example.excelimport.userwas.dto.UserImportListResponse;

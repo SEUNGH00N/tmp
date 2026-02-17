@@ -10,6 +10,7 @@
     <name>excel-import-platform</name>
 
     <modules>
+        <module>platform-common</module>
         <module>admin-was</module>
         <module>user-was</module>
     </modules>

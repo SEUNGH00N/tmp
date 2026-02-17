@@ -1,12 +1,13 @@
-# ERD (As-Is / To-Be)
+﻿# ERD (As-Is / To-Be)
 
 This document separates the current database model (As-Is) and the planned additions (To-Be).
 
 ## 1. As-Is (Currently Implemented)
 
 ### 1.1 Status
-- Migration baseline: `V1` ~ `V5`
-- `import_job.status` is now `VARCHAR(32)` with a CHECK constraint
+- Migration baseline: `V1` ~ `V6`
+- `import_job.status` is `VARCHAR(32)` with a CHECK constraint
+- Admin RBAC schema is implemented in `V6`
 
 ### 1.2 ERD (Current)
 ```mermaid
@@ -17,6 +18,50 @@ erDiagram
     VARCHAR password
     VARCHAR display_name
     BOOLEAN active
+    TIMESTAMP created_at
+  }
+
+  APP_ROLE {
+    UUID id PK
+    VARCHAR code UK
+    VARCHAR name
+    TEXT description
+    BOOLEAN active
+    TIMESTAMP created_at
+  }
+
+  APP_PERMISSION {
+    UUID id PK
+    VARCHAR code UK
+    VARCHAR resource
+    VARCHAR action
+    TEXT description
+    TIMESTAMP created_at
+  }
+
+  APP_USER_ROLE {
+    UUID id PK
+    UUID user_id FK
+    UUID role_id FK
+    UUID assigned_by FK
+    TIMESTAMP created_at
+  }
+
+  APP_ROLE_PERMISSION {
+    UUID id PK
+    UUID role_id FK
+    UUID permission_id FK
+    TIMESTAMP created_at
+  }
+
+  AUDIT_LOG {
+    UUID id PK
+    VARCHAR actor
+    VARCHAR target_type
+    UUID target_id
+    VARCHAR action
+    JSONB before_json
+    JSONB after_json
     TIMESTAMP created_at
   }
 
@@ -52,6 +97,11 @@ erDiagram
     TIMESTAMP created_at
   }
 
+  APP_USER ||--o{ APP_USER_ROLE : has_roles
+  APP_ROLE ||--o{ APP_USER_ROLE : assigned_to_users
+  APP_ROLE ||--o{ APP_ROLE_PERMISSION : grants
+  APP_PERMISSION ||--o{ APP_ROLE_PERMISSION : included_in
+
   IMPORT_JOB ||--o{ EXCEL_DATA : has_rows
   IMPORT_JOB ||--o{ ERROR_LOG : has_errors
 ```
@@ -60,81 +110,23 @@ erDiagram
 - `idx_import_job_created` on `import_job(created_at DESC)`
 - `idx_excel_data_job_created` on `excel_data(job_id, created_at DESC)`
 - `idx_error_log_job_created` on `error_log(job_id, created_at DESC)`
+- `idx_app_user_role_user` on `app_user_role(user_id)`
+- `idx_app_user_role_role` on `app_user_role(role_id)`
+- `idx_audit_log_target_created` on `audit_log(target_type, target_id, created_at DESC)`
 
 ---
 
 ## 2. To-Be (Planned Additions)
 
-> The model below is proposed from:
-> - `admin-was/docs/ADMIN_ENHANCEMENT_PLAN.md`
-> - `user-was/docs/USER_ENHANCEMENT_PLAN.md`
-> and is not implemented yet.
-
-### 2.1 Authorization and User Management Extension (Admin)
-
-```mermaid
-erDiagram
-  APP_USER ||--o{ USER_ROLE : has
-  ROLE ||--o{ USER_ROLE : assigned_to
-  ROLE ||--o{ ROLE_PERMISSION : grants
-  PERMISSION ||--o{ ROLE_PERMISSION : included_in
-
-  APP_USER {
-    UUID id PK
-    VARCHAR username UK
-    VARCHAR password
-    VARCHAR display_name
-    BOOLEAN active
-    TIMESTAMP created_at
-    TIMESTAMP password_changed_at
-    BOOLEAN must_change_password
-    INT failed_login_count
-    TIMESTAMP locked_until
-    TIMESTAMP last_login_at
-  }
-
-  ROLE {
-    UUID id PK
-    VARCHAR name UK
-    VARCHAR description
-    BOOLEAN active
-    TIMESTAMP created_at
-  }
-
-  PERMISSION {
-    UUID id PK
-    VARCHAR resource
-    VARCHAR action
-    VARCHAR description
-  }
-
-  USER_ROLE {
-    UUID user_id FK
-    UUID role_id FK
-    UUID assigned_by
-    TIMESTAMP created_at
-  }
-
-  ROLE_PERMISSION {
-    UUID role_id FK
-    UUID permission_id FK
-    TIMESTAMP created_at
-  }
-
-  AUDIT_LOG {
-    UUID id PK
-    VARCHAR actor
-    VARCHAR target_type
-    UUID target_id
-    VARCHAR action
-    JSONB before_json
-    JSONB after_json
-    TIMESTAMP created_at
-  }
-```
+### 2.1 Admin Account Hardening (Next)
+- Extend `app_user` with security lifecycle fields:
+  - `password_changed_at`
+  - `must_change_password`
+  - `failed_login_count`
+  - `locked_until`
+  - `last_login_at`
 
 ### 2.2 Upload and Processing Extension (User)
-
 ```mermaid
 erDiagram
   IMPORT_JOB ||--o{ IMPORT_JOB_EVENT : has_events
@@ -185,14 +177,14 @@ erDiagram
 ```
 
 ### 2.3 Recommended Rollout Order
-1. Authorization model (`role`, `permission`, `user_role`, `role_permission`) + `audit_log`
-2. Extend `import_job` (`original_filename`, `file_size`, `checksum`)
-3. Add event/metric tables (`import_job_event`, `import_job_metric`)
-4. Add dedup policy table (`import_dedup`) and retry policy
+1. `app_user` security lifecycle columns
+2. `import_job` metadata columns (`original_filename`, `file_size`, `checksum`)
+3. event/metric tables (`import_job_event`, `import_job_metric`)
+4. dedup policy table (`import_dedup`) and retry policy
 
 ---
 
 ## 3. Change Management Rules
-- Apply To-Be tables with new Flyway migrations (`V6+`) in phases
+- Apply To-Be tables with new Flyway migrations (`V7+`) in phases
 - Keep backward compatibility for existing APIs
 - Run migration rehearsal with sample data before production rollout

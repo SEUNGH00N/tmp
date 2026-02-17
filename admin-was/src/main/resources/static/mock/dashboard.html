@@ -1,137 +1,99 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html class="light" lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard - Excel Import</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Dashboard - Excel Import Service</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { primary: '#ec5b13', 'bg-light': '#f8f6f6', 'bg-dark': '#221610' }, fontFamily: { display: ['Public Sans'] } } } }
+  </script>
+  <style> body { font-family: 'Public Sans', sans-serif; } .active-nav { background:#ec5b13; color:#fff; } </style>
 </head>
-<body class="bg-slate-100 text-slate-800">
-  <div id="app" class="min-h-screen">
-    <header class="bg-white border-b">
-      <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <h1 class="text-xl font-bold">Excel Import Dashboard</h1>
-        <div class="flex items-center gap-3">
-          <span class="text-sm text-slate-600">{{ me }}</span>
-          <button @click="logout" class="px-3 py-1.5 text-sm border rounded">Logout</button>
-        </div>
-      </div>
-    </header>
+<body class="bg-bg-light font-display text-slate-800">
+  <div id="app" class="h-screen flex overflow-hidden">
+    <aside class="w-64 bg-[#1a110c] text-white flex flex-col shrink-0">
+      <div class="p-6 flex items-center gap-3"><div class="bg-primary rounded-lg p-2"><span class="material-symbols-outlined">grid_on</span></div><div><h1 class="text-sm font-bold">ImportService</h1><p class="text-[10px] text-primary uppercase tracking-widest">Admin Panel</p></div></div>
+      <nav class="flex-1 px-4 space-y-2">
+        <a href="/mock/dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl active-nav"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="text-sm font-medium">Dashboard</span></a>
+        <a href="/mock/job-list.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">history</span><span class="text-sm font-medium">Jobs</span></a>
+        <a href="/mock/settings.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">settings</span><span class="text-sm font-medium">Settings</span></a>
+        <a href="/mock/admin-users.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">group</span><span class="text-sm font-medium">Admin Users</span></a>
+        <a href="/mock/admin-roles.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10"><span class="material-symbols-outlined text-[20px]">verified_user</span><span class="text-sm font-medium">Roles</span></a>
+      </nav>
+      <div class="p-4 border-t border-white/10 text-xs text-slate-400">{{ me }}</div>
+    </aside>
 
-    <div class="max-w-7xl mx-auto px-4 py-4 grid grid-cols-12 gap-4">
-      <aside class="col-span-12 md:col-span-3 bg-white border rounded-xl p-3">
-        <nav class="space-y-1 text-sm font-medium">
-          <a href="/mock/dashboard.html" class="block px-3 py-2 rounded bg-blue-50 text-blue-700">Dashboard</a>
-          <a href="/mock/job-list.html" class="block px-3 py-2 rounded hover:bg-slate-100">Jobs</a>
-          <a href="/mock/settings.html" class="block px-3 py-2 rounded hover:bg-slate-100">Settings</a>
-        </nav>
-      </aside>
+    <main class="flex-1 flex flex-col overflow-hidden">
+      <header class="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between">
+        <h2 class="text-lg font-bold">Dashboard</h2>
+        <button @click="logout" class="px-3 py-2 rounded-xl border text-sm hover:bg-slate-50">Logout</button>
+      </header>
 
-      <main class="col-span-12 md:col-span-9 space-y-4">
-        <section class="bg-white border rounded-xl p-4">
-          <h2 class="font-semibold">Start New Import</h2>
+      <div class="flex-1 overflow-y-auto p-8 space-y-6">
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="bg-white rounded-xl border p-4"><p class="text-xs text-slate-500">Recent Jobs</p><p class="text-2xl font-bold mt-1">{{ jobs.length }}</p></div>
+          <div class="bg-white rounded-xl border p-4"><p class="text-xs text-slate-500">Tenant</p><p class="text-sm font-semibold mt-1 break-all">{{ tenantId }}</p></div>
+          <div class="bg-white rounded-xl border p-4"><p class="text-xs text-slate-500">Upload</p><p class="text-sm font-semibold mt-1">CSV/XLSX</p></div>
+          <div class="bg-white rounded-xl border p-4"><p class="text-xs text-slate-500">Status</p><p class="text-sm font-semibold mt-1">Operational</p></div>
+        </section>
+
+        <section class="bg-white rounded-xl border p-5">
+          <h3 class="font-semibold">Start New Import</h3>
           <div class="grid md:grid-cols-3 gap-3 mt-3">
-            <input v-model="tenantId" placeholder="Tenant UUID" class="border rounded-lg px-3 py-2 md:col-span-2" />
-            <input ref="fileInput" type="file" accept=".csv,.xlsx" class="border rounded-lg px-3 py-2" />
+            <input v-model="tenantId" placeholder="Tenant UUID" class="md:col-span-2 rounded-xl border-slate-300 focus:border-primary focus:ring-primary" />
+            <input ref="fileInput" type="file" accept=".csv,.xlsx" class="rounded-xl border-slate-300" />
           </div>
           <div class="mt-3 flex gap-2">
-            <button @click="createImport" :disabled="uploading" class="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50">
-              {{ uploading ? 'Uploading...' : 'Process Upload' }}
-            </button>
-            <button @click="fetchJobs" class="px-4 py-2 border rounded-lg">Refresh</button>
+            <button @click="createImport" :disabled="uploading" class="px-4 py-2.5 rounded-xl bg-primary text-white font-semibold disabled:opacity-60">{{ uploading ? 'Uploading...' : 'Process Upload' }}</button>
+            <button @click="fetchJobs" class="px-4 py-2.5 rounded-xl border">Refresh</button>
           </div>
           <p class="text-sm mt-2" :class="uploadError ? 'text-red-600' : 'text-emerald-600'">{{ uploadMessage }}</p>
         </section>
 
-        <section class="bg-white border rounded-xl overflow-hidden">
-          <div class="px-4 py-3 border-b flex justify-between items-center">
-            <h2 class="font-semibold">Recent Jobs</h2>
-            <span class="text-sm text-slate-500">{{ jobs.length }} items</span>
-          </div>
+        <section class="bg-white rounded-xl border overflow-hidden">
+          <div class="px-4 py-3 border-b flex items-center justify-between"><h3 class="font-semibold">Recent Jobs</h3><span class="text-xs text-slate-500">{{ jobs.length }} items</span></div>
           <div class="overflow-x-auto">
             <table class="min-w-full text-sm">
-              <thead class="bg-slate-50 text-slate-600">
-                <tr>
-                  <th class="text-left px-4 py-2">Job ID</th>
-                  <th class="text-left px-4 py-2">Tenant</th>
-                  <th class="text-left px-4 py-2">Status</th>
-                  <th class="text-left px-4 py-2">Progress</th>
-                  <th class="text-left px-4 py-2">Stats</th>
-                  <th class="text-left px-4 py-2">Created</th>
-                  <th class="text-left px-4 py-2">Action</th>
-                </tr>
-              </thead>
+              <thead class="bg-slate-50 text-slate-500 text-xs uppercase"><tr><th class="px-4 py-3 text-left">Job ID</th><th class="px-4 py-3 text-left">Tenant</th><th class="px-4 py-3 text-left">Status</th><th class="px-4 py-3 text-left">Progress</th><th class="px-4 py-3 text-left">Stats</th><th class="px-4 py-3 text-left">Created</th><th class="px-4 py-3 text-left">Action</th></tr></thead>
               <tbody>
-                <tr v-for="j in jobs" :key="j.jobId" class="border-t">
-                  <td class="px-4 py-2 font-mono text-xs">{{ j.jobId }}</td>
-                  <td class="px-4 py-2">{{ j.tenantId }}</td>
-                  <td class="px-4 py-2">{{ j.status }}</td>
-                  <td class="px-4 py-2">{{ j.progressPct }}%</td>
-                  <td class="px-4 py-2">{{ j.successCount }} / {{ j.failCount }}</td>
-                  <td class="px-4 py-2">{{ fmt(j.createdAt) }}</td>
-                  <td class="px-4 py-2"><a :href="`/mock/job-details.html?jobId=${j.jobId}`" class="text-blue-600 hover:underline">View</a></td>
+                <tr v-for="j in jobs" :key="j.jobId" class="border-t hover:bg-slate-50">
+                  <td class="px-4 py-3 font-mono text-xs">{{ j.jobId }}</td><td class="px-4 py-3">{{ j.tenantId }}</td><td class="px-4 py-3">{{ j.status }}</td><td class="px-4 py-3">{{ j.progressPct }}%</td><td class="px-4 py-3">{{ j.successCount }} / {{ j.failCount }}</td><td class="px-4 py-3">{{ fmt(j.createdAt) }}</td><td class="px-4 py-3"><a :href="`/mock/job-details.html?jobId=${j.jobId}`" class="text-primary font-semibold">View</a></td>
                 </tr>
                 <tr v-if="!jobs.length"><td colspan="7" class="px-4 py-6 text-center text-slate-500">No jobs</td></tr>
               </tbody>
             </table>
           </div>
         </section>
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <script src="/mock/app.js"></script>
   <script>
     const { createApp } = Vue;
-
     createApp({
-      data() {
-        return {
-          me: '',
-          tenantId: '00000000-0000-0000-0000-000000000001',
-          jobs: [],
-          uploading: false,
-          uploadMessage: '',
-          uploadError: false
-        };
-      },
-      async mounted() {
-        const auth = await ExcelApp.requireAuth();
-        if (!auth) return;
-        this.me = auth.username;
-        await this.fetchJobs();
-      },
+      data() { return { me: '', tenantId: '00000000-0000-0000-0000-000000000001', jobs: [], uploading: false, uploadMessage: '', uploadError: false }; },
+      async mounted() { const auth = await ExcelApp.requireAuth(); if (!auth) return; this.me = auth.username; await this.fetchJobs(); },
       methods: {
         fmt(v) { return ExcelApp.formatDate(v); },
         async logout() { await ExcelApp.logout(); },
-        async fetchJobs() {
-          const res = await ExcelApp.api('/api/v1/imports?page=0&size=8&sort=createdAt,desc', { method: 'GET' });
-          this.jobs = res.data.items || [];
-        },
+        async fetchJobs() { const res = await ExcelApp.api('/api/v1/imports?page=0&size=8&sort=createdAt,desc', { method: 'GET' }); this.jobs = res.data.items || []; },
         async createImport() {
           const file = this.$refs.fileInput.files[0];
-          if (!this.tenantId || !file) {
-            this.uploadError = true;
-            this.uploadMessage = 'Tenant ID and file are required';
-            return;
-          }
-          this.uploading = true;
-          this.uploadMessage = '';
+          if (!this.tenantId || !file) { this.uploadError = true; this.uploadMessage = 'Tenant ID and file are required'; return; }
+          this.uploading = true; this.uploadMessage = '';
           try {
-            const form = new FormData();
-            form.append('tenant_id', this.tenantId);
-            form.append('file', file);
-            const res = await ExcelApp.api('/api/v1/imports', { method: 'POST', body: form });
-            this.uploadError = false;
-            this.uploadMessage = `Created job: ${res.data.jobId}`;
-            await this.fetchJobs();
-          } catch (e) {
-            this.uploadError = true;
-            this.uploadMessage = e.message;
-          } finally {
-            this.uploading = false;
-          }
+            const fd = new FormData(); fd.append('tenant_id', this.tenantId); fd.append('file', file);
+            const resp = await fetch('/api/v1/imports', { method: 'POST', body: fd, credentials: 'same-origin' });
+            const body = await resp.json();
+            if (!resp.ok) throw new Error(body.detail || body.title || 'upload failed');
+            this.uploadError = false; this.uploadMessage = `Created job: ${body.data.jobId}`; await this.fetchJobs();
+          } catch (e) { this.uploadError = true; this.uploadMessage = e.message; }
+          finally { this.uploading = false; }
         }
       }
     }).mount('#app');

@@ -1,64 +1,28 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html class="light" lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Job Detail</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>User Job Detail - Excel Import Service</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script>tailwind.config={theme:{extend:{colors:{primary:'#ec5b13','bg-light':'#f8f6f6'},fontFamily:{display:['Public Sans']}}}}</script>
+  <style> body { font-family: 'Public Sans', sans-serif; } </style>
 </head>
-<body class="bg-slate-100 text-slate-800">
+<body class="bg-bg-light font-display text-slate-800">
   <div id="app" class="min-h-screen">
-    <header class="bg-white border-b">
-      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <header class="bg-white border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <h1 class="text-xl font-bold">Job Detail</h1>
-        <a href="/user/dashboard.html" class="text-sm px-3 py-1 border rounded">Back</a>
+        <a href="/user/dashboard.html" class="px-3 py-2 text-sm rounded-xl border">Back</a>
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto p-4 space-y-4">
-      <section class="bg-white border rounded-xl p-4">
-        <div class="flex gap-2 items-center">
-          <input v-model="jobId" class="flex-1 border rounded-lg px-3 py-2" placeholder="Job UUID" />
-          <button @click="loadAll" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Load</button>
-        </div>
-        <p class="text-sm mt-2" :class="statusError ? 'text-red-600' : 'text-slate-700'">{{ statusText }}</p>
-      </section>
-
-      <section class="bg-white border rounded-xl overflow-hidden">
-        <div class="px-4 py-3 border-b font-semibold">Imported Rows</div>
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead class="bg-slate-50 text-slate-600"><tr><th class="px-4 py-2 text-left">Row ID</th><th class="px-4 py-2 text-left">Payload</th><th class="px-4 py-2 text-left">Created</th></tr></thead>
-            <tbody>
-              <tr v-for="r in rows" :key="r.id" class="border-t align-top">
-                <td class="px-4 py-2 font-mono text-xs">{{ r.id }}</td>
-                <td class="px-4 py-2"><pre class="text-xs bg-slate-50 border rounded p-2 whitespace-pre-wrap break-all">{{ prettyPayload(r.payloadJson) }}</pre></td>
-                <td class="px-4 py-2">{{ fmt(r.createdAt) }}</td>
-              </tr>
-              <tr v-if="!rows.length"><td colspan="3" class="px-4 py-6 text-center text-slate-500">No imported rows</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="bg-white border rounded-xl overflow-hidden">
-        <div class="px-4 py-3 border-b font-semibold">Validation Errors</div>
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead class="bg-slate-50 text-slate-600"><tr><th class="px-4 py-2 text-left">Row</th><th class="px-4 py-2 text-left">Column</th><th class="px-4 py-2 text-left">Code</th><th class="px-4 py-2 text-left">Message</th><th class="px-4 py-2 text-left">Created</th></tr></thead>
-            <tbody>
-              <tr v-for="e in errors" :key="`${e.rowIndex}-${e.columnName}-${e.errorCode}-${e.createdAt}`" class="border-t">
-                <td class="px-4 py-2">{{ e.rowIndex }}</td>
-                <td class="px-4 py-2">{{ e.columnName }}</td>
-                <td class="px-4 py-2">{{ e.errorCode }}</td>
-                <td class="px-4 py-2">{{ e.errorMsg }}</td>
-                <td class="px-4 py-2">{{ fmt(e.createdAt) }}</td>
-              </tr>
-              <tr v-if="!errors.length"><td colspan="5" class="px-4 py-6 text-center text-slate-500">No errors</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+    <main class="max-w-7xl mx-auto p-4 space-y-4">
+      <section class="bg-white border rounded-xl p-4"><div class="flex gap-2 items-center"><input v-model="jobId" class="flex-1 rounded-xl border-slate-300 focus:border-primary focus:ring-primary" placeholder="Job UUID" /><button @click="loadAll" class="px-4 py-2.5 bg-primary text-white rounded-xl font-semibold">Load</button></div><p class="text-sm mt-2" :class="statusError ? 'text-red-600' : 'text-slate-700'">{{ statusText }}</p></section>
+      <section class="bg-white border rounded-xl overflow-hidden"><div class="px-4 py-3 border-b font-semibold">Imported Rows</div><div class="overflow-x-auto"><table class="min-w-full text-sm"><thead class="bg-slate-50 text-slate-500 text-xs uppercase"><tr><th class="px-4 py-3 text-left">Row ID</th><th class="px-4 py-3 text-left">Payload</th><th class="px-4 py-3 text-left">Created</th></tr></thead><tbody><tr v-for="r in rows" :key="r.id" class="border-t"><td class="px-4 py-3 font-mono text-xs">{{ r.id }}</td><td class="px-4 py-3"><pre class="text-xs bg-slate-50 border rounded p-2 whitespace-pre-wrap break-all">{{ prettyPayload(r.payloadJson) }}</pre></td><td class="px-4 py-3">{{ fmt(r.createdAt) }}</td></tr><tr v-if="!rows.length"><td colspan="3" class="px-4 py-6 text-center text-slate-500">No imported rows</td></tr></tbody></table></div></section>
+      <section class="bg-white border rounded-xl overflow-hidden"><div class="px-4 py-3 border-b font-semibold">Validation Errors</div><div class="overflow-x-auto"><table class="min-w-full text-sm"><thead class="bg-slate-50 text-slate-500 text-xs uppercase"><tr><th class="px-4 py-3 text-left">Row</th><th class="px-4 py-3 text-left">Column</th><th class="px-4 py-3 text-left">Code</th><th class="px-4 py-3 text-left">Message</th><th class="px-4 py-3 text-left">Created</th></tr></thead><tbody><tr v-for="e in errors" :key="`${e.rowIndex}-${e.columnName}-${e.errorCode}-${e.createdAt}`" class="border-t"><td class="px-4 py-3">{{ e.rowIndex }}</td><td class="px-4 py-3">{{ e.columnName }}</td><td class="px-4 py-3">{{ e.errorCode }}</td><td class="px-4 py-3">{{ e.errorMsg }}</td><td class="px-4 py-3">{{ fmt(e.createdAt) }}</td></tr><tr v-if="!errors.length"><td colspan="5" class="px-4 py-6 text-center text-slate-500">No errors</td></tr></tbody></table></div></section>
     </main>
   </div>
 
@@ -66,45 +30,12 @@
   <script src="/user/app.js"></script>
   <script>
     Vue.createApp({
-      data() {
-        return { tenantId: '', jobId: '', statusText: '', statusError: false, rows: [], errors: [] };
-      },
-      async mounted() {
-        this.tenantId = UserApp.requireTenant();
-        if (!this.tenantId) return;
-        const params = new URLSearchParams(window.location.search);
-        this.jobId = params.get('jobId') || '';
-        if (this.jobId) await this.loadAll();
-      },
-      methods: {
-        fmt(v) { return UserApp.fmt(v); },
-        prettyPayload(v) {
-          try {
-            return JSON.stringify(JSON.parse(v || '{}'), null, 2);
-          } catch (e) {
-            return v || '-';
-          }
-        },
-        async loadAll() {
-          if (!this.jobId) return;
-          try {
-            const status = await UserApp.api(`/api/v1/user/imports/${this.jobId}?tenant_id=${encodeURIComponent(this.tenantId)}`, { method: 'GET' });
-            const d = status.data;
-            this.statusError = false;
-            this.statusText = `Status: ${d.status} | Progress: ${d.progressPct}% (${d.processedRows}/${d.totalRows})`;
-
-            const rowRes = await UserApp.api(`/api/v1/user/imports/${this.jobId}/rows?tenant_id=${encodeURIComponent(this.tenantId)}&page=0&size=50`, { method: 'GET' });
-            this.rows = rowRes.data.items || [];
-
-            const err = await UserApp.api(`/api/v1/user/imports/${this.jobId}/errors?tenant_id=${encodeURIComponent(this.tenantId)}&page=0&size=50`, { method: 'GET' });
-            this.errors = err.data.items || [];
-          } catch (e) {
-            this.statusError = true;
-            this.statusText = e.message;
-            this.rows = [];
-            this.errors = [];
-          }
-        }
+      data(){return{tenantId:'',jobId:'',statusText:'',statusError:false,rows:[],errors:[]};},
+      async mounted(){this.tenantId=UserApp.requireTenant();if(!this.tenantId)return;const params=new URLSearchParams(window.location.search);this.jobId=params.get('jobId')||'';if(this.jobId)await this.loadAll();},
+      methods:{
+        fmt(v){return UserApp.fmt(v);},
+        prettyPayload(v){try{return JSON.stringify(JSON.parse(v||'{}'),null,2);}catch(e){return v||'-';}},
+        async loadAll(){if(!this.jobId)return;try{const status=await UserApp.api(`/api/v1/user/imports/${this.jobId}?tenant_id=${encodeURIComponent(this.tenantId)}`,{method:'GET'});const d=status.data;this.statusError=false;this.statusText=`Status: ${d.status} | Progress: ${d.progressPct}% (${d.processedRows}/${d.totalRows})`;const rowRes=await UserApp.api(`/api/v1/user/imports/${this.jobId}/rows?tenant_id=${encodeURIComponent(this.tenantId)}&page=0&size=50`,{method:'GET'});this.rows=rowRes.data.items||[];const err=await UserApp.api(`/api/v1/user/imports/${this.jobId}/errors?tenant_id=${encodeURIComponent(this.tenantId)}&page=0&size=50`,{method:'GET'});this.errors=err.data.items||[];}catch(e){this.statusError=true;this.statusText=e.message;this.rows=[];this.errors=[];}}
       }
     }).mount('#app');
   </script>

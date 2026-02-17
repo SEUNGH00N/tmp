@@ -53,3 +53,20 @@ mvn spring-boot:run
 ## Notes
 - Session store is Redis (`spring.session.store-type=redis`).
 - Request IDs are propagated in API response metadata.
+
+## Additional Work Needed
+- Account model split and migration:
+  - move admin auth from generic `app_user` naming to explicit admin account domain
+  - prepare compatibility migration path for existing seeds and sessions
+- RBAC hardening:
+  - permission-level checks per endpoint (not role-only coarse checks)
+  - role/permission CRUD UI with change diff preview
+- Audit operations:
+  - `GET /api/v1/admin/audit-logs` query API
+  - filters by actor/action/target/date range
+- Approval governance:
+  - admin approval queue for schema/DDL requests
+  - approve/reject with reason and SLA tracking
+- Operational readiness:
+  - admin error dashboards
+  - policy/version management screen
