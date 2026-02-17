@@ -15,6 +15,9 @@ public class ImportJob {
     @Column(name = "tenant_id", nullable = false)
     private UUID tenantId;
 
+    @Column(name = "workspace_id", nullable = false)
+    private UUID workspaceId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private ImportJobStatus status;
@@ -54,6 +57,9 @@ public class ImportJob {
         if (status == null) {
             status = ImportJobStatus.CREATED;
         }
+        if (workspaceId == null && tenantId != null) {
+            workspaceId = tenantId;
+        }
         if (createdAt == null) {
             createdAt = Instant.now();
         }
@@ -63,6 +69,8 @@ public class ImportJob {
     public void setId(UUID id) { this.id = id; }
     public UUID getTenantId() { return tenantId; }
     public void setTenantId(UUID tenantId) { this.tenantId = tenantId; }
+    public UUID getWorkspaceId() { return workspaceId; }
+    public void setWorkspaceId(UUID workspaceId) { this.workspaceId = workspaceId; }
     public ImportJobStatus getStatus() { return status; }
     public void setStatus(ImportJobStatus status) { this.status = status; }
     public String getFileUri() { return fileUri; }

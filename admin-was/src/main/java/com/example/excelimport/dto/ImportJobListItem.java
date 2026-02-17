@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public record ImportJobListItem(
         UUID jobId,
-        UUID tenantId,
+        UUID workspaceId,
         ImportJobStatus status,
         int progressPct,
         int totalRows,

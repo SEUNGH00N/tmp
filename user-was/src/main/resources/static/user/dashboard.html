@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -17,11 +17,11 @@
       <nav class="flex-1 px-4 space-y-2">
         <a href="/user/dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl active-nav"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="text-sm font-medium">Dashboard</span></a>
       </nav>
-      <div class="p-4 border-t border-white/10"><button @click="logout" class="w-full px-3 py-2 rounded-xl bg-white/10 text-sm">Change Tenant</button></div>
+      <div class="p-4 border-t border-white/10"><button @click="logout" class="w-full px-3 py-2 rounded-xl bg-white/10 text-sm">Change Workspace</button></div>
     </aside>
 
     <main class="flex-1 flex flex-col overflow-hidden">
-      <header class="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between"><div><h2 class="text-lg font-bold">User Import Dashboard</h2><p class="text-xs text-slate-500">Tenant: {{ tenantId }}</p></div><button @click="fetchJobs" class="px-3 py-2 rounded-xl border text-sm">Refresh</button></header>
+      <header class="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between"><div><h2 class="text-lg font-bold">User Import Dashboard</h2><p class="text-xs text-slate-500">Workspace: {{ workspaceId }}</p></div><button @click="fetchJobs" class="px-3 py-2 rounded-xl border text-sm">Refresh</button></header>
       <div class="flex-1 overflow-y-auto p-8 space-y-6">
         <section class="bg-white border rounded-xl p-5"><h3 class="font-semibold">Upload Excel/CSV</h3><div class="mt-3 flex gap-2"><input ref="file" type="file" accept=".csv,.xlsx" class="border rounded-xl px-3 py-2 flex-1" /><button @click="upload" :disabled="uploading" class="px-4 py-2.5 bg-primary text-white rounded-xl font-semibold disabled:opacity-50">{{ uploading ? 'Uploading...' : 'Upload' }}</button></div><p class="text-sm mt-2" :class="uploadError ? 'text-red-600' : 'text-emerald-600'">{{ uploadMsg }}</p></section>
         <section class="bg-white border rounded-xl overflow-hidden"><div class="px-4 py-3 border-b flex items-center justify-between"><h3 class="font-semibold">My Import Jobs</h3><span class="text-xs text-slate-500">{{ jobs.length }} items</span></div><div class="overflow-x-auto"><table class="min-w-full text-sm"><thead class="bg-slate-50 text-slate-500 text-xs uppercase"><tr><th class="text-left px-4 py-3">Job ID</th><th class="text-left px-4 py-3">Status</th><th class="text-left px-4 py-3">Progress</th><th class="text-left px-4 py-3">Created</th><th class="text-left px-4 py-3">Action</th></tr></thead><tbody><tr v-for="j in jobs" :key="j.jobId" class="border-t hover:bg-slate-50"><td class="px-4 py-3 font-mono text-xs">{{ j.jobId }}</td><td class="px-4 py-3">{{ j.status }}</td><td class="px-4 py-3">{{ j.progressPct }}% ({{ j.processedRows }}/{{ j.totalRows }})</td><td class="px-4 py-3">{{ fmt(j.createdAt) }}</td><td class="px-4 py-3"><a :href="`/user/job-detail.html?jobId=${j.jobId}`" class="text-primary font-semibold">View</a></td></tr><tr v-if="!jobs.length"><td colspan="5" class="px-4 py-6 text-center text-slate-500">No jobs</td></tr></tbody></table></div></section>
@@ -33,13 +33,13 @@
   <script src="/user/app.js"></script>
   <script>
     Vue.createApp({
-      data(){return{tenantId:'',jobs:[],uploading:false,uploadMsg:'',uploadError:false};},
-      async mounted(){this.tenantId=UserApp.requireTenant();if(!this.tenantId)return;await this.fetchJobs();},
+      data(){return{workspaceId:'',jobs:[],uploading:false,uploadMsg:'',uploadError:false};},
+      async mounted(){this.workspaceId=UserApp.requireWorkspace();if(!this.workspaceId)return;await UserApp.bindWorkspaceSession(this.workspaceId);await this.fetchJobs();},
       methods:{
         fmt(v){return UserApp.fmt(v);},
-        logout(){UserApp.clearTenant();},
-        async fetchJobs(){const res=await UserApp.api(`/api/v1/user/imports?tenant_id=${encodeURIComponent(this.tenantId)}&page=0&size=20`,{method:'GET'});this.jobs=res.data.items||[];},
-        async upload(){const file=this.$refs.file.files[0];if(!file){this.uploadError=true;this.uploadMsg='file is required';return;}this.uploading=true;this.uploadMsg='';try{const form=new FormData();form.append('tenant_id',this.tenantId);form.append('file',file);const res=await UserApp.api('/api/v1/user/imports',{method:'POST',body:form});this.uploadError=false;this.uploadMsg=`created job: ${res.data.jobId}`;await this.fetchJobs();}catch(e){this.uploadError=true;this.uploadMsg=e.message;}finally{this.uploading=false;}}
+        logout(){UserApp.clearWorkspace();},
+        async fetchJobs(){const res=await UserApp.api(`/api/v1/user/imports?workspace_id=${encodeURIComponent(this.workspaceId)}&page=0&size=20`,{method:'GET'});this.jobs=res.data.items||[];},
+        async upload(){const file=this.$refs.file.files[0];if(!file){this.uploadError=true;this.uploadMsg='file is required';return;}this.uploading=true;this.uploadMsg='';try{const form=new FormData();form.append('workspace_id',this.workspaceId);form.append('file',file);const res=await UserApp.api('/api/v1/user/imports',{method:'POST',body:form});this.uploadError=false;this.uploadMsg=`created job: ${res.data.jobId}`;await this.fetchJobs();}catch(e){this.uploadError=true;this.uploadMsg=e.message;}finally{this.uploading=false;}}
       }
     }).mount('#app');
   </script>

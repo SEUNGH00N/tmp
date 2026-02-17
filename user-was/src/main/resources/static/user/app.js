@@ -1,4 +1,4 @@
-﻿window.UserApp = (() => {
+window.UserApp = (() => {
   async function api(path, options = {}) {
     const headers = { ...(options.headers || {}) };
     const isFormData = options.body instanceof FormData;
@@ -11,24 +11,30 @@
     return body;
   }
 
-  function getTenantId() {
-    return localStorage.getItem('user_tenant_id') || '';
+  function getWorkspaceId() {
+    return localStorage.getItem('user_workspace_id') || localStorage.getItem('user_tenant_id') || '';
   }
 
-  function setTenantId(v) {
-    localStorage.setItem('user_tenant_id', v);
+  function setWorkspaceId(v) {
+    localStorage.setItem('user_workspace_id', v);
+    localStorage.removeItem('user_tenant_id');
   }
 
-  function requireTenant() {
-    const t = getTenantId();
-    if (!t) {
+  async function bindWorkspaceSession(workspaceId) {
+    await api(`/api/v1/user/imports/session/workspace?workspace_id=${encodeURIComponent(workspaceId)}`, { method: 'POST' });
+  }
+
+  function requireWorkspace() {
+    const w = getWorkspaceId();
+    if (!w) {
       window.location.href = '/user/login.html';
       return '';
     }
-    return t;
+    return w;
   }
 
-  function clearTenant() {
+  function clearWorkspace() {
+    localStorage.removeItem('user_workspace_id');
     localStorage.removeItem('user_tenant_id');
     window.location.href = '/user/login.html';
   }
@@ -37,5 +43,5 @@
     return v ? new Date(v).toLocaleString() : '-';
   }
 
-  return { api, getTenantId, setTenantId, requireTenant, clearTenant, fmt };
+  return { api, getWorkspaceId, setWorkspaceId, bindWorkspaceSession, requireWorkspace, clearWorkspace, fmt };
 })();

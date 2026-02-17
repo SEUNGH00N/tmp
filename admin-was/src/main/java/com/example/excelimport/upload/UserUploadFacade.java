@@ -22,12 +22,12 @@ public class UserUploadFacade {
     }
 
     @Transactional
-    public UserUploadResult createImportJob(UUID tenantId, MultipartFile file) {
-        UserUploadCommand command = new UserUploadCommand(tenantId, file);
+    public UserUploadResult createImportJob(UUID workspaceId, MultipartFile file) {
+        UserUploadCommand command = new UserUploadCommand(workspaceId, file);
         uploadGuard.validate(command);
 
-        UploadStoragePort.UploadStoredFile stored = uploadStoragePort.store(command.tenantId(), command.file());
-        UUID jobId = importJobDispatchPort.createCreatedJob(command.tenantId(), stored.fileUri());
+        UploadStoragePort.UploadStoredFile stored = uploadStoragePort.store(command.workspaceId(), command.file());
+        UUID jobId = importJobDispatchPort.createCreatedJob(command.workspaceId(), stored.fileUri());
         importJobDispatchPort.dispatch(jobId, stored.extension());
 
         return new UserUploadResult(jobId, stored.fileUri(), stored.extension());

@@ -4,5 +4,5 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
-public record UserUploadCommand(UUID tenantId, MultipartFile file) {
+public record UserUploadCommand(UUID workspaceId, MultipartFile file) {
 }

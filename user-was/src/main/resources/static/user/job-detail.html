@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -30,12 +30,12 @@
   <script src="/user/app.js"></script>
   <script>
     Vue.createApp({
-      data(){return{tenantId:'',jobId:'',statusText:'',statusError:false,rows:[],errors:[]};},
-      async mounted(){this.tenantId=UserApp.requireTenant();if(!this.tenantId)return;const params=new URLSearchParams(window.location.search);this.jobId=params.get('jobId')||'';if(this.jobId)await this.loadAll();},
+      data(){return{workspaceId:'',jobId:'',statusText:'',statusError:false,rows:[],errors:[]};},
+      async mounted(){this.workspaceId=UserApp.requireWorkspace();if(!this.workspaceId)return;await UserApp.bindWorkspaceSession(this.workspaceId);const params=new URLSearchParams(window.location.search);this.jobId=params.get('jobId')||'';if(this.jobId)await this.loadAll();},
       methods:{
         fmt(v){return UserApp.fmt(v);},
         prettyPayload(v){try{return JSON.stringify(JSON.parse(v||'{}'),null,2);}catch(e){return v||'-';}},
-        async loadAll(){if(!this.jobId)return;try{const status=await UserApp.api(`/api/v1/user/imports/${this.jobId}?tenant_id=${encodeURIComponent(this.tenantId)}`,{method:'GET'});const d=status.data;this.statusError=false;this.statusText=`Status: ${d.status} | Progress: ${d.progressPct}% (${d.processedRows}/${d.totalRows})`;const rowRes=await UserApp.api(`/api/v1/user/imports/${this.jobId}/rows?tenant_id=${encodeURIComponent(this.tenantId)}&page=0&size=50`,{method:'GET'});this.rows=rowRes.data.items||[];const err=await UserApp.api(`/api/v1/user/imports/${this.jobId}/errors?tenant_id=${encodeURIComponent(this.tenantId)}&page=0&size=50`,{method:'GET'});this.errors=err.data.items||[];}catch(e){this.statusError=true;this.statusText=e.message;this.rows=[];this.errors=[];}}
+        async loadAll(){if(!this.jobId)return;try{const status=await UserApp.api(`/api/v1/user/imports/${this.jobId}?workspace_id=${encodeURIComponent(this.workspaceId)}`,{method:'GET'});const d=status.data;this.statusError=false;this.statusText=`Status: ${d.status} | Progress: ${d.progressPct}% (${d.processedRows}/${d.totalRows})`;const rowRes=await UserApp.api(`/api/v1/user/imports/${this.jobId}/rows?workspace_id=${encodeURIComponent(this.workspaceId)}&page=0&size=50`,{method:'GET'});this.rows=rowRes.data.items||[];const err=await UserApp.api(`/api/v1/user/imports/${this.jobId}/errors?workspace_id=${encodeURIComponent(this.workspaceId)}&page=0&size=50`,{method:'GET'});this.errors=err.data.items||[];}catch(e){this.statusError=true;this.statusText=e.message;this.rows=[];this.errors=[];}}
       }
     }).mount('#app');
   </script>

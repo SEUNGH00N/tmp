@@ -41,8 +41,8 @@ public class ImportJobService {
     }
 
     @Transactional
-    public UUID createJob(UUID tenantId, MultipartFile file) {
-        return userUploadFacade.createImportJob(tenantId, file).jobId();
+    public UUID createJob(UUID workspaceId, MultipartFile file) {
+        return userUploadFacade.createImportJob(workspaceId, file).jobId();
     }
 
     @Transactional(readOnly = true)
@@ -54,11 +54,13 @@ public class ImportJobService {
     }
 
     @Transactional(readOnly = true)
-    public PagedImportJobsResponse getJobs(Pageable pageable) {
-        Page<ImportJobListItem> page = importJobRepository.findAll(pageable)
+    public PagedImportJobsResponse getJobs(Pageable pageable, UUID workspaceId) {
+        Page<ImportJobListItem> page = (workspaceId == null
+                ? importJobRepository.findAll(pageable)
+                : importJobRepository.findByWorkspaceId(workspaceId, pageable))
                 .map(job -> new ImportJobListItem(
                         job.getId(),
-                        job.getTenantId(),
+                        job.getWorkspaceId(),
                         job.getStatus(),
                         progress(job.getProcessedRows(), job.getTotalRows()),
                         job.getTotalRows(),

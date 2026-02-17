@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record UserImportListItem(
         UUID jobId,
-        UUID tenantId,
+        UUID workspaceId,
         String status,
         int progressPct,
         int totalRows,

@@ -9,11 +9,11 @@ public class DefaultUploadGuard implements UploadGuard {
 
     @Override
     public void validate(UserUploadCommand command) {
-        if (command == null || command.tenantId() == null) {
+        if (command == null || command.workspaceId() == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST,
-                    "https://example.com/problems/missing-tenant",
+                    "https://example.com/problems/missing-workspace",
                     "Bad Request",
-                    "tenant_id is required");
+                    "workspace_id is required");
         }
 
         if (command.file() == null || command.file().isEmpty()) {

@@ -21,9 +21,10 @@ public class JpaImportJobDispatchAdapter implements ImportJobDispatchPort {
     }
 
     @Override
-    public UUID createCreatedJob(UUID tenantId, String fileUri) {
+    public UUID createCreatedJob(UUID workspaceId, String fileUri) {
         ImportJob job = new ImportJob();
-        job.setTenantId(tenantId);
+        job.setTenantId(workspaceId); // transitional compatibility
+        job.setWorkspaceId(workspaceId);
         job.setStatus(ImportJobStatus.CREATED);
         job.setFileUri(fileUri);
         job.setTotalRows(0);

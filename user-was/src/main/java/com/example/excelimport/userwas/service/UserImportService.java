@@ -39,50 +39,52 @@ public class UserImportService {
         this.processingService = processingService;
     }
 
-    public UserImportCreateResponse create(UUID tenantId, MultipartFile file) {
-        if (tenantId == null) throw new UserWasException(400, "tenant_id is required");
+    public UserImportCreateResponse create(UUID workspaceId, MultipartFile file) {
+        if (workspaceId == null) throw new UserWasException(400, "workspace_id is required");
         if (file == null || file.isEmpty()) throw new UserWasException(400, "file is required");
+
+        ensureWorkspaceExists(workspaceId);
 
         UserFileStorageService.StoredFile stored;
         try {
-            stored = storageService.store(tenantId, file);
+            stored = storageService.store(workspaceId, file);
         } catch (IOException e) {
             throw new UserWasException(500, e.getMessage());
         }
 
         UUID jobId = UUID.randomUUID();
         jdbcTemplate.update(
-                "insert into import_job (id, tenant_id, status, file_uri, total_rows, processed_rows, success_count, fail_count, error_log_uri, created_at, started_at, finished_at) " +
-                        "values (?, ?, ?, ?, 0, 0, 0, 0, null, now(), null, null)",
-                jobId, tenantId, "CREATED", stored.fileUri()
+                "insert into import_job (id, tenant_id, workspace_id, status, file_uri, total_rows, processed_rows, success_count, fail_count, error_log_uri, created_at, started_at, finished_at) " +
+                        "values (?, ?, ?, ?, ?, 0, 0, 0, 0, null, now(), null, null)",
+                jobId, workspaceId, workspaceId, "CREATED", stored.fileUri()
         );
 
         processingService.processAsync(jobId, stored.extension(), stored.fileUri());
         return new UserImportCreateResponse(jobId);
     }
 
-    public UserImportListResponse list(UUID tenantId, int page, int size) {
-        if (tenantId == null) throw new UserWasException(400, "tenant_id is required");
+    public UserImportListResponse list(UUID workspaceId, int page, int size) {
+        if (workspaceId == null) throw new UserWasException(400, "workspace_id is required");
         if (size < 1) size = 20;
         if (page < 0) page = 0;
 
-        Integer total = jdbcTemplate.queryForObject("select count(*) from import_job where tenant_id = ?", Integer.class, tenantId);
+        Integer total = jdbcTemplate.queryForObject("select count(*) from import_job where workspace_id = ?", Integer.class, workspaceId);
         int totalElements = total == null ? 0 : total;
 
         List<UserImportListItem> items = jdbcTemplate.query(
-                "select id, tenant_id, status, total_rows, processed_rows, created_at from import_job where tenant_id = ? order by created_at desc limit ? offset ?",
-                new ImportListMapper(), tenantId, size, page * size
+                "select id, workspace_id, status, total_rows, processed_rows, created_at from import_job where workspace_id = ? order by created_at desc limit ? offset ?",
+                new ImportListMapper(), workspaceId, size, page * size
         );
 
         int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
         return new UserImportListResponse(items, page, size, totalElements, totalPages);
     }
 
-    public UserImportStatusResponse status(UUID tenantId, UUID jobId) {
-        if (tenantId == null) throw new UserWasException(400, "tenant_id is required");
+    public UserImportStatusResponse status(UUID workspaceId, UUID jobId) {
+        if (workspaceId == null) throw new UserWasException(400, "workspace_id is required");
 
         List<UserImportStatusResponse> rows = jdbcTemplate.query(
-                "select id, status, total_rows, processed_rows from import_job where id = ? and tenant_id = ?",
+                "select id, status, total_rows, processed_rows from import_job where id = ? and workspace_id = ?",
                 (rs, n) -> {
                     int totalRows = rs.getInt("total_rows");
                     int processedRows = rs.getInt("processed_rows");
@@ -95,62 +97,62 @@ public class UserImportService {
                             processedRows
                     );
                 },
-                jobId, tenantId
+                jobId, workspaceId
         );
 
         if (rows.isEmpty()) throw new UserWasException(404, "job not found");
         return rows.get(0);
     }
 
-    public UserImportRowListResponse rows(UUID tenantId, UUID jobId, int page, int size) {
-        if (tenantId == null) throw new UserWasException(400, "tenant_id is required");
+    public UserImportRowListResponse rows(UUID workspaceId, UUID jobId, int page, int size) {
+        if (workspaceId == null) throw new UserWasException(400, "workspace_id is required");
         if (size < 1) size = 50;
         if (page < 0) page = 0;
 
-        ensureJobOwned(tenantId, jobId);
+        ensureJobOwned(workspaceId, jobId);
 
         Integer total = jdbcTemplate.queryForObject(
-                "select count(*) from excel_data d join import_job j on d.job_id = j.id where d.job_id = ? and j.tenant_id = ?",
+                "select count(*) from excel_data d join import_job j on d.job_id = j.id where d.job_id = ? and j.workspace_id = ?",
                 Integer.class,
-                jobId, tenantId
+                jobId, workspaceId
         );
         int totalElements = total == null ? 0 : total;
 
         List<UserImportRowItem> items = jdbcTemplate.query(
                 "select d.id, d.payload_json::text as payload_json, d.created_at " +
                         "from excel_data d join import_job j on d.job_id = j.id " +
-                        "where d.job_id = ? and j.tenant_id = ? " +
+                        "where d.job_id = ? and j.workspace_id = ? " +
                         "order by d.created_at desc limit ? offset ?",
                 (rs, n) -> new UserImportRowItem(
                         (UUID) rs.getObject("id"),
                         rs.getString("payload_json"),
                         rs.getTimestamp("created_at").toInstant()
                 ),
-                jobId, tenantId, size, page * size
+                jobId, workspaceId, size, page * size
         );
 
         int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
         return new UserImportRowListResponse(items, page, size, totalElements, totalPages);
     }
 
-    public UserImportErrorListResponse errors(UUID tenantId, UUID jobId, int page, int size) {
-        if (tenantId == null) throw new UserWasException(400, "tenant_id is required");
+    public UserImportErrorListResponse errors(UUID workspaceId, UUID jobId, int page, int size) {
+        if (workspaceId == null) throw new UserWasException(400, "workspace_id is required");
         if (size < 1) size = 50;
         if (page < 0) page = 0;
 
-        ensureJobOwned(tenantId, jobId);
+        ensureJobOwned(workspaceId, jobId);
 
         Integer total = jdbcTemplate.queryForObject(
-                "select count(*) from error_log e join import_job j on e.job_id = j.id where e.job_id = ? and j.tenant_id = ?",
+                "select count(*) from error_log e join import_job j on e.job_id = j.id where e.job_id = ? and j.workspace_id = ?",
                 Integer.class,
-                jobId, tenantId
+                jobId, workspaceId
         );
         int totalElements = total == null ? 0 : total;
 
         List<UserImportErrorItem> items = jdbcTemplate.query(
                 "select e.row_index, e.column_name, e.error_code, e.error_msg, e.created_at " +
                         "from error_log e join import_job j on e.job_id = j.id " +
-                        "where e.job_id = ? and j.tenant_id = ? " +
+                        "where e.job_id = ? and j.workspace_id = ? " +
                         "order by e.created_at desc limit ? offset ?",
                 (rs, n) -> new UserImportErrorItem(
                         rs.getInt("row_index"),
@@ -159,20 +161,50 @@ public class UserImportService {
                         rs.getString("error_msg"),
                         rs.getTimestamp("created_at").toInstant()
                 ),
-                jobId, tenantId, size, page * size
+                jobId, workspaceId, size, page * size
         );
 
         int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
         return new UserImportErrorListResponse(items, page, size, totalElements, totalPages);
     }
 
-    private void ensureJobOwned(UUID tenantId, UUID jobId) {
+    private void ensureJobOwned(UUID workspaceId, UUID jobId) {
         Integer exists = jdbcTemplate.queryForObject(
-                "select count(*) from import_job where id = ? and tenant_id = ?",
+                "select count(*) from import_job where id = ? and workspace_id = ?",
                 Integer.class,
-                jobId, tenantId
+                jobId, workspaceId
         );
         if (exists == null || exists == 0) throw new UserWasException(404, "job not found");
+    }
+
+    private void ensureWorkspaceExists(UUID workspaceId) {
+        Integer count = jdbcTemplate.queryForObject("select count(*) from workspace where id = ?", Integer.class, workspaceId);
+        if (count != null && count > 0) {
+            return;
+        }
+
+        jdbcTemplate.update(
+                "insert into workspace (id, slug, name, status, owner_account_id, created_at, updated_at) values (?, ?, ?, 'ACTIVE', ?, now(), now())",
+                workspaceId,
+                "ws-" + workspaceId.toString().replace("-", "").substring(0, 8),
+                "Workspace " + workspaceId.toString().substring(0, 8),
+                workspaceId
+        );
+
+        jdbcTemplate.update(
+                "insert into workspace_account (id, email, password_hash, display_name, active, created_at) values (?, ?, ?, ?, true, now())",
+                workspaceId,
+                "owner+" + workspaceId.toString().replace("-", "") + "@workspace.local",
+                "changeme",
+                "Workspace Owner"
+        );
+
+        jdbcTemplate.update(
+                "insert into workspace_membership (id, workspace_id, account_id, role_code, status, joined_at) values (?, ?, ?, 'OWNER', 'ACTIVE', now())",
+                workspaceId,
+                workspaceId,
+                workspaceId
+        );
     }
 
     private static class ImportListMapper implements RowMapper<UserImportListItem> {
@@ -184,7 +216,7 @@ public class UserImportService {
             Instant createdAt = rs.getTimestamp("created_at").toInstant();
             return new UserImportListItem(
                     (UUID) rs.getObject("id"),
-                    (UUID) rs.getObject("tenant_id"),
+                    (UUID) rs.getObject("workspace_id"),
                     rs.getString("status"),
                     pct,
                     totalRows,

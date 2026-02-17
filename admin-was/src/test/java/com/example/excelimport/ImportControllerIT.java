@@ -38,11 +38,11 @@ class ImportControllerIT {
                 "text/csv",
                 "a,b\n,ok\nvalid,b".getBytes(StandardCharsets.UTF_8)
         );
-        String tenantId = UUID.randomUUID().toString();
+        String workspaceId = UUID.randomUUID().toString();
 
         String response = mockMvc.perform(multipart("/api/v1/imports")
                         .file(file)
-                        .param("tenant_id", tenantId)
+                        .param("workspace_id", workspaceId)
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
@@ -82,7 +82,7 @@ class ImportControllerIT {
 
         mockMvc.perform(multipart("/api/v1/imports")
                         .file(file)
-                        .param("tenant_id", UUID.randomUUID().toString())
+                        .param("workspace_id", UUID.randomUUID().toString())
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isUnsupportedMediaType())
                 .andExpect(jsonPath("$.title").value("Unsupported Media Type"));

@@ -39,18 +39,27 @@ public class ImportController {
     @PostMapping(value = "/imports", consumes = "multipart/form-data")
     public ResponseEntity<ApiResponse<ImportCreateResponse>> create(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("tenant_id") UUID tenantId,
+            @RequestParam(value = "workspace_id", required = false) UUID workspaceId,
+            @RequestParam(value = "tenant_id", required = false) UUID tenantId,
             HttpServletRequest request) {
-        UUID jobId = importJobService.createJob(tenantId, file);
+        UUID effectiveWorkspaceId = workspaceId != null ? workspaceId : tenantId;
+        if (effectiveWorkspaceId == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "https://example.com/problems/missing-parameter",
+                    "Bad Request",
+                    "workspace_id is required");
+        }
+        UUID jobId = importJobService.createJob(effectiveWorkspaceId, file);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(new ImportCreateResponse(jobId), requestId(request)));
     }
 
     @GetMapping("/imports")
     public ApiResponse<PagedImportJobsResponse> list(
+            @RequestParam(value = "workspace_id", required = false) UUID workspaceId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             HttpServletRequest request) {
-        return ApiResponse.success(importJobService.getJobs(pageable), requestId(request));
+        return ApiResponse.success(importJobService.getJobs(pageable, workspaceId), requestId(request));
     }
 
     @GetMapping("/imports/{jobId}")

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html class="light" lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -13,12 +13,24 @@
 <body class="min-h-screen bg-bg-light font-display">
   <div id="app" class="min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-md bg-white border rounded-2xl shadow-xl p-8">
-      <div class="flex items-center gap-3 mb-5"><div class="bg-primary rounded-lg p-2 text-white"><span class="material-symbols-outlined">person</span></div><div><h1 class="text-lg font-bold">User Portal</h1><p class="text-xs text-slate-500">Tenant access login</p></div></div>
-      <form class="space-y-3" @submit.prevent="go"><input v-model="tenantId" class="w-full rounded-xl border-slate-300 focus:border-primary focus:ring-primary" placeholder="Tenant UUID" required /><button class="w-full rounded-xl bg-primary text-white py-2.5 font-bold">Continue</button><p class="text-xs text-slate-500">Example: 00000000-0000-0000-0000-000000000001</p></form>
+      <div class="flex items-center gap-3 mb-5"><div class="bg-primary rounded-lg p-2 text-white"><span class="material-symbols-outlined">person</span></div><div><h1 class="text-lg font-bold">User Portal</h1><p class="text-xs text-slate-500">Workspace access login</p></div></div>
+      <form class="space-y-3" @submit.prevent="go"><input v-model="workspaceId" class="w-full rounded-xl border-slate-300 focus:border-primary focus:ring-primary" placeholder="Workspace UUID" required /><button class="w-full rounded-xl bg-primary text-white py-2.5 font-bold">Continue</button><p class="text-xs text-slate-500">Example: workspace UUID</p></form>
     </div>
   </div>
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <script src="/user/app.js"></script>
-  <script>Vue.createApp({data(){return{tenantId:UserApp.getTenantId()};},methods:{go(){UserApp.setTenantId(this.tenantId.trim());window.location.href='/user/dashboard.html';}}}).mount('#app');</script>
+  <script>
+    Vue.createApp({
+      data(){return{workspaceId:UserApp.getWorkspaceId()};},
+      methods:{
+        async go(){
+          const ws=this.workspaceId.trim();
+          UserApp.setWorkspaceId(ws);
+          await UserApp.bindWorkspaceSession(ws);
+          window.location.href='/user/dashboard.html';
+        }
+      }
+    }).mount('#app');
+  </script>
 </body>
 </html>
