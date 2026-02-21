@@ -27,15 +27,21 @@ public class UserImportProcessingService {
 
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
+    private final UserBillingService userBillingService;
 
-    public UserImportProcessingService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    public UserImportProcessingService(JdbcTemplate jdbcTemplate,
+                                       ObjectMapper objectMapper,
+                                       UserBillingService userBillingService) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
+        this.userBillingService = userBillingService;
     }
 
     @Async("userImportExecutor")
     public void processAsync(UUID jobId, String extension, String fileUri) {
+        UUID workspaceId = null;
         try {
+            workspaceId = lookupWorkspaceId(jobId);
             updateStatus(jobId, "PARSING");
             jdbcTemplate.update("update import_job set started_at = now() where id = ?", jobId);
 
@@ -79,12 +85,23 @@ public class UserImportProcessingService {
                     "update import_job set status = ?, processed_rows = ?, success_count = ?, fail_count = ?, finished_at = now() where id = ?",
                     "COMPLETED", processed, success, fail, jobId
             );
+            if (workspaceId != null) {
+                userBillingService.addProcessingOutcome(workspaceId, processed, fail);
+            }
         } catch (Exception ex) {
             jdbcTemplate.update(
                     "update import_job set status = ?, finished_at = now() where id = ?",
                     "FAILED", jobId
             );
         }
+    }
+
+    private UUID lookupWorkspaceId(UUID jobId) {
+        return jdbcTemplate.query(
+                "select workspace_id from import_job where id = ?",
+                rs -> rs.next() ? (UUID) rs.getObject("workspace_id") : null,
+                jobId
+        );
     }
 
     private void updateStatus(UUID jobId, String status) {

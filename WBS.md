@@ -31,20 +31,20 @@
 ## 2. Phase 2 (V8): 과금/사용량 모델
 
 ### 2.1 DB/Flyway
-- [ ] `billing_plan`
-- [ ] `plan_feature`
-- [ ] `workspace_subscription`
-- [ ] `workspace_usage_daily`
+- [x] `billing_plan`
+- [x] `plan_feature`
+- [x] `workspace_subscription`
+- [x] `workspace_usage_daily`
 
 ### 2.2 Backend
-- [ ] 플랜 조회 API
-- [ ] 구독 상태 조회 API
-- [ ] 업로드 quota 검사
-- [ ] 일별 usage 집계
+- [x] 플랜 조회 API (`/api/v1/user/billing/plan`)
+- [x] 구독 상태 조회 API (`/api/v1/user/billing/subscription`)
+- [x] 업로드 quota 검사
+- [x] 일별 usage 집계
 
 ### 2.3 Frontend
-- [ ] 플랜/사용량 UI
-- [ ] 한도 초과 UX
+- [x] 플랜/사용량 UI
+- [x] 한도 초과 UX
 
 ## 3. Phase 3 (V9): DB 연결 보안
 - [ ] `db_connection` + `secret_ref` 모델

@@ -26,6 +26,10 @@
   - 기본: `sync` 모드(내부 async worker 호출)
   - 확장: `kafka` 모드(현재 producer adapter 지점만 준비)
 - 테넌트 컨텍스트: `workspace_id` 기준
+- 과금/사용량(V8):
+  - `billing_plan`, `plan_feature`, `workspace_subscription`, `workspace_usage_daily`
+  - 업로드 quota 검사(월 업로드 횟수/최대 파일 크기)
+  - 사용자 포털에서 플랜/사용량 요약 조회
 
 ## Run
 1. Infra

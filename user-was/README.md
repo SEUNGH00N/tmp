@@ -23,6 +23,11 @@ mvn spring-boot:run
 - `GET /api/v1/user/imports/{jobId}/rows?workspace_id=...&page=0&size=50`
 - `GET /api/v1/user/imports/{jobId}/errors?workspace_id=...&page=0&size=50`
 
+## Billing API (V8)
+- `GET /api/v1/user/billing/plan?workspace_id=...`
+- `GET /api/v1/user/billing/subscription?workspace_id=...`
+- `GET /api/v1/user/billing/summary?workspace_id=...`
+
 ## Workspace Session API
 - `POST /api/v1/user/imports/session/workspace?workspace_id=...`
 - `GET /api/v1/user/imports/session/workspace`
@@ -48,3 +53,6 @@ mvn spring-boot:run
 - 검증:
   - `col_1` 필수 (`IMP-VAL-001`)
   - 셀 길이 255 초과 금지 (`IMP-VAL-002`)
+- 업로드 시 플랜 기반 quota 검사:
+  - 월 업로드 횟수(`monthly_upload_quota`)
+  - 파일 최대 용량(`max_file_size_mb`)

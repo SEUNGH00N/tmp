@@ -28,15 +28,18 @@ public class UserImportService {
     private final JdbcTemplate jdbcTemplate;
     private final UserFileStorageService storageService;
     private final UserImportEventPublisher userImportEventPublisher;
+    private final UserBillingService userBillingService;
 
     public UserImportService(
             JdbcTemplate jdbcTemplate,
             UserFileStorageService storageService,
-            UserImportEventPublisher userImportEventPublisher
+            UserImportEventPublisher userImportEventPublisher,
+            UserBillingService userBillingService
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.storageService = storageService;
         this.userImportEventPublisher = userImportEventPublisher;
+        this.userBillingService = userBillingService;
     }
 
     public UserImportCreateResponse create(UUID workspaceId, MultipartFile file) {
@@ -44,6 +47,7 @@ public class UserImportService {
         if (file == null || file.isEmpty()) throw new UserWasException(400, "file is required");
 
         ensureWorkspaceExists(workspaceId);
+        userBillingService.validateUploadQuota(workspaceId, file.getSize());
 
         UserFileStorageService.StoredFile stored;
         try {
@@ -58,6 +62,7 @@ public class UserImportService {
                         "values (?, ?, ?, ?, ?, 0, 0, 0, 0, null, now(), null, null)",
                 jobId, workspaceId, workspaceId, "CREATED", stored.fileUri()
         );
+        userBillingService.addUploadAcceptedUsage(workspaceId, file.getSize());
 
         userImportEventPublisher.publish(
                 new UserImportProcessRequestedEvent(jobId, stored.extension(), stored.fileUri(), Instant.now())
