@@ -1,4 +1,4 @@
-# WBS (Single Developer)
+﻿# WBS (Single Developer)
 
 기준 문서: `ERD.md`  
 개발 인원: 1명  
@@ -59,13 +59,15 @@
 - [x] 이벤트 퍼블리셔 경계 분리(`sync/kafka` 모드 전환점)
 
 ## 5. Phase 5 (V11): 승인/거버넌스/플래그
-- [ ] `approval_request`
-- [ ] `approval_decision`
-- [ ] `workspace_feature_flag`
-- [ ] 정책별 승인 플로우
+- [x] `approval_request`
+- [x] `approval_decision`
+- [x] `workspace_feature_flag`
+- [x] 정책별 승인 플로우
 
 ## 6. 공통 품질 체크
 - [ ] README/ERD/WBS 동기화 유지
 - [ ] 인덱스/쿼리 점검
 - [ ] 운영 로그/에러 표준화
 - [ ] 배포/롤백 체크리스트 정리
+
+

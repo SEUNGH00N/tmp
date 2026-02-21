@@ -30,17 +30,20 @@ public class UserImportService {
     private final UserFileStorageService storageService;
     private final UserImportEventPublisher userImportEventPublisher;
     private final UserBillingService userBillingService;
+    private final UserGovernanceService userGovernanceService;
 
     public UserImportService(
             JdbcTemplate jdbcTemplate,
             UserFileStorageService storageService,
             UserImportEventPublisher userImportEventPublisher,
-            UserBillingService userBillingService
+            UserBillingService userBillingService,
+            UserGovernanceService userGovernanceService
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.storageService = storageService;
         this.userImportEventPublisher = userImportEventPublisher;
         this.userBillingService = userBillingService;
+        this.userGovernanceService = userGovernanceService;
     }
 
     public UserImportCreateResponse create(UUID workspaceId, MultipartFile file) {
@@ -102,15 +105,32 @@ public class UserImportService {
                         "values (?, ?, ?, ?, 'QUEUED', now(), now())",
                 runId, jobId, runNo, "user-local"
         );
-        jdbcTemplate.update(
-                "insert into import_job_event (id, job_id, event_type, level, payload_json, created_at) " +
-                        "values (?, ?, 'JOB_DISPATCHED', 'INFO', ?::jsonb, now())",
-                UUID.randomUUID(), jobId, "{\"runNo\":" + runNo + ",\"source\":\"user\"}"
-        );
 
-        userImportEventPublisher.publish(
-                new UserImportProcessRequestedEvent(jobId, runId, runNo, stored.extension(), stored.fileUri(), Instant.now())
-        );
+        boolean approvalRequired = userGovernanceService.isFeatureEnabled(workspaceId, "APPROVAL_REQUIRED");
+        if (approvalRequired) {
+            userGovernanceService.createImportApprovalRequest(
+                    workspaceId,
+                    jobId,
+                    "workspace-user",
+                    "PLATFORM_ADMIN",
+                    "Approval required by feature flag"
+            );
+            jdbcTemplate.update(
+                    "insert into import_job_event (id, job_id, event_type, level, payload_json, created_at) " +
+                            "values (?, ?, 'APPROVAL_REQUIRED', 'INFO', ?::jsonb, now())",
+                    UUID.randomUUID(), jobId, "{\"runNo\":" + runNo + "}"
+            );
+        } else {
+            jdbcTemplate.update(
+                    "insert into import_job_event (id, job_id, event_type, level, payload_json, created_at) " +
+                            "values (?, ?, 'JOB_DISPATCHED', 'INFO', ?::jsonb, now())",
+                    UUID.randomUUID(), jobId, "{\"runNo\":" + runNo + ",\"source\":\"user\"}"
+            );
+
+            userImportEventPublisher.publish(
+                    new UserImportProcessRequestedEvent(jobId, runId, runNo, stored.extension(), stored.fileUri(), Instant.now())
+            );
+        }
         return new UserImportCreateResponse(jobId);
     }
 
