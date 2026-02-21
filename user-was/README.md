@@ -1,12 +1,9 @@
 # User WAS
 
 ## Scope
-End-user Spring Boot application for tenant-scoped Excel upload and import monitoring.
-
-- Upload CSV/XLSX
-- Job list/status/detail (rows/errors)
-- Async parsing/validation/loading pipeline
-- User frontend pages under `/user/*`
+- 사용자 업로드 API
+- 잡 목록/상태/상세(행/에러) 조회
+- 사용자 포털(`/user/*`)
 
 ## Runtime
 - Port: `8081`
@@ -19,11 +16,26 @@ mvn spring-boot:run
 ```
 
 ## API
-- `POST /api/v1/user/imports` (`multipart`: `tenant_id`, `file`)
-- `GET /api/v1/user/imports?tenant_id=...&page=0&size=20`
-- `GET /api/v1/user/imports/{jobId}?tenant_id=...`
-- `GET /api/v1/user/imports/{jobId}/rows?tenant_id=...&page=0&size=50`
-- `GET /api/v1/user/imports/{jobId}/errors?tenant_id=...&page=0&size=50`
+- `POST /api/v1/user/imports` (`multipart`: `workspace_id`, `file`)
+  - 하위호환: `tenant_id` 허용
+- `GET /api/v1/user/imports?workspace_id=...&page=0&size=20`
+- `GET /api/v1/user/imports/{jobId}?workspace_id=...`
+- `GET /api/v1/user/imports/{jobId}/rows?workspace_id=...&page=0&size=50`
+- `GET /api/v1/user/imports/{jobId}/errors?workspace_id=...&page=0&size=50`
+
+## Workspace Session API
+- `POST /api/v1/user/imports/session/workspace?workspace_id=...`
+- `GET /api/v1/user/imports/session/workspace`
+
+## Import Dispatch Mode
+- 설정: `app.user-import.dispatch-mode`
+  - `sync` (기본): 내부 async worker 처리
+  - `kafka`: Kafka producer adapter 지점 사용(현재 local fallback 가능)
+- 설정: `app.user-import.kafka.local-fallback-enabled`
+
+## Redis
+- 세션 저장: Redis
+- workspace 세션 컨텍스트를 Redis-backed Session으로 유지
 
 ## Front Pages
 - `GET /` -> `/user/login.html`
@@ -31,41 +43,8 @@ mvn spring-boot:run
 - `GET /user/dashboard.html`
 - `GET /user/job-detail.html?jobId=...`
 
-## Current Processing Rules
-- Status flow: `CREATED -> PARSING -> VALIDATING -> LOADING -> COMPLETED/FAILED`
-- Validation:
-  - `col_1` required (`IMP-VAL-001`)
-  - max cell length 255 (`IMP-VAL-002`)
-- Persistence:
-  - valid rows -> `excel_data`
-  - invalid rows -> `error_log`
-
-## Data and Migration
-- Shares same PostgreSQL schema as admin-was
-- Flyway disabled in this module (schema managed by admin-was)
-- Uses same storage policy: `{root}/{tenantId}/{sha256_prefix}/{sha256}.{ext}`
-
-## Sample File
-- `../upload_template_cases.xlsx`
-  - `success_case`
-  - `error_case`
-
-## Additional Work Needed
-- End-user authentication model:
-  - introduce `tenant_user` (email/password or SSO) instead of tenant-id-only login
-  - bind user identity to tenant/workspace policy
-- Schema draft UX before DB apply:
-  - inferred column types preview
-  - user editable constraints/options
-  - submit approval request flow
-- Upload/processing robustness:
-  - dedup policy by checksum
-  - retry strategy and resumable processing states
-  - large-file streaming/chunk support
-- Detail UX improvement:
-  - error export
-  - field-level issue highlighting
-  - progress polling standardization
-- Data pipeline extension:
-  - `import_job_event` and `import_job_metric`
-  - summary endpoint for processing insights
+## Current Validation Rules
+- 상태 플로우: `CREATED -> PARSING -> VALIDATING -> LOADING -> COMPLETED/FAILED`
+- 검증:
+  - `col_1` 필수 (`IMP-VAL-001`)
+  - 셀 길이 255 초과 금지 (`IMP-VAL-002`)

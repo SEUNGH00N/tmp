@@ -1,13 +1,10 @@
 # Admin WAS
 
 ## Scope
-Admin-facing Spring Boot application.
-
-- Session login/logout (`/api/v1/auth/*`)
-- Import management APIs (`/api/v1/imports*`)
-- Users/settings APIs
-- Flyway migration owner
-- Admin frontend pages under `/mock/*`
+- 관리자 인증/인가
+- Import 관리 API
+- 사용자/설정 관리 API
+- Flyway 마이그레이션 관리
 
 ## Runtime
 - Port: `8080`
@@ -19,54 +16,50 @@ cd .\admin-was
 mvn spring-boot:run
 ```
 
-## API
-### Auth
-- `POST /api/v1/auth/login`
-- `GET /api/v1/auth/me`
-- `POST /api/v1/auth/logout`
+## Auth
 
-### Import
-- `POST /api/v1/imports` (`multipart`: `file`, `tenant_id`)
-- `GET /api/v1/imports`
+### Login
+- `POST /api/v1/auth/login`
+- Body: `{"username":"admin","password":"admin1234"}`
+- Response: `username`, `tokenType`, `accessToken`
+
+### Me
+- `GET /api/v1/auth/me`
+- 인증 방식:
+  - 세션 쿠키
+  - `Authorization: Bearer <accessToken>`
+
+### Logout
+- `POST /api/v1/auth/logout`
+- 세션/토큰 동시 무효화
+
+## Import API
+- `POST /api/v1/imports` (`multipart`: `file`, `workspace_id`)
+  - 하위호환: `tenant_id` 허용
+- `GET /api/v1/imports?workspace_id=...`
 - `GET /api/v1/imports/{jobId}`
 - `GET /api/v1/imports/{jobId}/rows?page=0&size=50`
 - `GET /api/v1/imports/{jobId}/errors?page=0&size=50`
 
-### Operations
-- `GET /api/v1/users?page=0&size=20`
-- `GET /api/v1/settings`
-- `PUT /api/v1/settings`
+## Admin API
+- `GET /api/v1/admin/users`
+- `PATCH /api/v1/admin/users/{userId}/status`
+- `PUT /api/v1/admin/users/{userId}/roles`
+- `GET /api/v1/admin/roles`
+
+## Import Dispatch Mode
+- 설정: `app.import.dispatch-mode`
+  - `sync` (기본): 내부 async worker 처리
+  - `kafka`: Kafka producer adapter 지점 사용(현재 local fallback 가능)
+- 설정: `app.import.kafka.local-fallback-enabled`
+
+## Redis
+- 세션 저장: Redis
+- 인증 토큰 저장: Redis (`auth:token:*`)
 
 ## Front Pages
 - `GET /` -> `/login.html`
 - `GET /login.html`
 - `GET /mock/dashboard.html`
-- `GET /mock/job-list.html`
-- `GET /mock/job-details.html`
-- `GET /mock/settings.html`
-
-## Data and Migration
-- Uses PostgreSQL `exceldb`
-- Flyway enabled in this module
-- Shared tables: `app_user`, `import_job`, `excel_data`, `error_log`
-
-## Notes
-- Session store is Redis (`spring.session.store-type=redis`).
-- Request IDs are propagated in API response metadata.
-
-## Additional Work Needed
-- Account model split and migration:
-  - move admin auth from generic `app_user` naming to explicit admin account domain
-  - prepare compatibility migration path for existing seeds and sessions
-- RBAC hardening:
-  - permission-level checks per endpoint (not role-only coarse checks)
-  - role/permission CRUD UI with change diff preview
-- Audit operations:
-  - `GET /api/v1/admin/audit-logs` query API
-  - filters by actor/action/target/date range
-- Approval governance:
-  - admin approval queue for schema/DDL requests
-  - approve/reject with reason and SLA tracking
-- Operational readiness:
-  - admin error dashboards
-  - policy/version management screen
+- `GET /mock/admin-users.html`
+- `GET /mock/admin-roles.html`

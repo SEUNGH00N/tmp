@@ -1,18 +1,17 @@
 # Excel Import Platform
 
 ## Overview
-Excel upload/import platform with separated Admin WAS and User WAS.
+`admin-was` + `user-was` 분리 구조의 Excel Import SaaS MVP 프로젝트입니다.
 
-- `admin-was` manages auth, admin UI, settings, and schema migration.
-- `user-was` provides tenant-scoped upload and import tracking APIs/UI.
-- Both apps share PostgreSQL tables and local file storage policy.
+- `admin-was`: 인증/권한/관리 화면/마이그레이션 소유
+- `user-was`: 사용자 업로드/잡 조회/에러 조회
+- 공용 DB: PostgreSQL
+- 공용 세션 스토어: Redis
 
-## Project Layout
-- `pom.xml`: root aggregator (`admin-was`, `user-was`)
-- `docker-compose.yml`: infra only (`postgres`, `redis`)
-- `admin-was/`: admin backend + admin frontend mock pages
-- `user-was/`: user backend + user frontend pages
-- `upload_template_cases.xlsx`: sample upload template (success/error cases)
+## Modules
+- `admin-was`
+- `user-was`
+- `platform-common`
 
 ## Runtime Ports
 - Admin WAS: `http://localhost:8080`
@@ -20,10 +19,13 @@ Excel upload/import platform with separated Admin WAS and User WAS.
 - PostgreSQL: `localhost:5432`
 - Redis: `localhost:6379`
 
-## Prerequisites
-- Java 17
-- Maven 3.9+
-- Docker Desktop
+## Current Architecture
+- 인증: `HttpSession + Bearer Token` 병행 지원
+- 세션 저장: Redis (`spring-session-data-redis`)
+- 업로드 처리: `Event Publisher` 경유 구조
+  - 기본: `sync` 모드(내부 async worker 호출)
+  - 확장: `kafka` 모드(현재 producer adapter 지점만 준비)
+- 테넌트 컨텍스트: `workspace_id` 기준
 
 ## Run
 1. Infra
@@ -41,53 +43,19 @@ cd .\user-was
 mvn spring-boot:run
 ```
 
-## Shared Data Model
-- `app_user`: admin login users
-- `import_job`: job header/status/counters
-- `excel_data`: valid imported rows (`payload_json` JSONB)
-- `error_log`: invalid row details
+## Test
+```powershell
+cd .\
+mvn clean test
+```
 
-### Status Strategy
-- `import_job.status` is `VARCHAR(32)` with CHECK constraint:
-  - `CREATED`, `PARSING`, `VALIDATING`, `LOADING`, `COMPLETED`, `FAILED`
+## Docs
+- `ERD.md`: As-Is / To-Be ERD
+- `WBS.md`: 단일 개발자 기준 실행 WBS
+- `admin-was/README.md`: Admin 상세
+- `user-was/README.md`: User 상세
 
-## Migration Ownership
-- Flyway owner: `admin-was`
-- Key migrations:
-  - `V1__init.sql`
-  - `V2__auth_user.sql`
-  - `V3__seed_dummy_data.sql`
-  - `V4__import_job_status_to_varchar.sql`
-  - `V5__migration_hygiene.sql`
-
-## MVP Status (Current)
-- Multi-WAS separation done
-- User upload -> async parse/validate/load flow implemented
-- Valid rows persist to `excel_data`, invalid rows to `error_log`
-- User job detail UI renders status + rows + errors
-- Admin UI/API and user UI/API run independently on separate ports
-
-## Backlog (High-Level)
-- Role-based authorization model
-- Schema inference/versioning for uploaded datasets
-- Large-file performance tuning and streaming strategy
-- Storage cleanup scheduler and operational health checks
-
-## Next Additions (Post-Current Implementation)
-- Split account domains clearly:
-  - `admin_user` for admin authentication/operations
-  - `tenant_user` for end-user portal authentication
-- Extend approval workflow before DDL execution:
-  - `SELF_APPROVAL`, `ADMIN_APPROVAL`, `DUAL_APPROVAL`
-  - policy at organization/workspace level
-- Add schema draft lifecycle:
-  - dataset profiling
-  - editable schema draft
-  - schema version freeze after approval
-- Add DDL/ERD pipeline:
-  - DDL plan generation
-  - controlled execution and rollback policy
-  - ERD export (`mermaid`, SQL DDL)
-- Strengthen observability:
-  - request/job/tenant correlated logs
-  - pipeline metrics and failure alarms
+## Next Focus
+- Admin: RBAC 확장(권한 단위 API 인가), 감사로그 고도화
+- User: 플랜/사용량 제한(`usage_daily`) 반영
+- Common: Kafka producer/consumer 실제 연결 및 DLQ 전략
