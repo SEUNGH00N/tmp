@@ -52,10 +52,10 @@
 - [x] 암호화/키버전 정책
 
 ## 4. Phase 4 (V10): 비동기 신뢰성/관측
-- [ ] `import_job_run`
-- [ ] `import_job_event`
-- [ ] `import_job_metric`
-- [ ] `import_dedup`
+- [x] `import_job_run`
+- [x] `import_job_event`
+- [x] `import_job_metric`
+- [x] `import_dedup`
 - [x] 이벤트 퍼블리셔 경계 분리(`sync/kafka` 모드 전환점)
 
 ## 5. Phase 5 (V11): 승인/거버넌스/플래그

@@ -53,6 +53,12 @@ mvn spring-boot:run
   - `kafka`: Kafka producer adapter 지점 사용(현재 local fallback 가능)
 - 설정: `app.import.kafka.local-fallback-enabled`
 
+## Async Reliability & Observability (V10)
+- `import_job_run`으로 재시도/실행 이력 관리
+- `import_job_event`로 상태 이벤트 적재
+- `import_job_metric`으로 처리량 메트릭 적재
+- `import_dedup`으로 동일 파일 중복 업로드 감지
+
 ## Redis
 - 세션 저장: Redis
 - 인증 토큰 저장: Redis (`auth:token:*`)

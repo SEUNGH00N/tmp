@@ -26,10 +26,10 @@ public class KafkaReadyUserImportEventPublisher implements UserImportEventPublis
     @Override
     public void publish(UserImportProcessRequestedEvent event) {
         // Kafka producer adapter point: replace with KafkaTemplate send(topic, payload)
-        log.info("Kafka dispatch-mode enabled. Publish candidate event: jobId={}, extension={}, requestedAt={}",
-                event.jobId(), event.extension(), event.requestedAt());
+        log.info("Kafka dispatch-mode enabled. Publish candidate event: jobId={}, runNo={}, extension={}, requestedAt={}",
+                event.jobId(), event.runNo(), event.extension(), event.requestedAt());
         if (localFallbackEnabled) {
-            processingService.processAsync(event.jobId(), event.extension(), event.fileUri());
+            processingService.processAsync(event.jobId(), event.runId(), event.runNo(), event.extension(), event.fileUri());
         }
     }
 }

@@ -16,6 +16,6 @@ public class LocalAsyncImportJobEventPublisher implements ImportJobEventPublishe
 
     @Override
     public void publish(ImportJobProcessRequestedEvent event) {
-        importWorkerService.processAsync(event.jobId(), event.extension());
+        importWorkerService.processAsync(event.jobId(), event.runId(), event.runNo(), event.extension());
     }
 }

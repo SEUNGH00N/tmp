@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.MessageDigest;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -48,6 +49,24 @@ public class UserImportService {
 
         ensureWorkspaceExists(workspaceId);
         userBillingService.validateUploadQuota(workspaceId, file.getSize());
+        long fileSize = file.getSize();
+        String checksum = sha256Hex(readBytes(file));
+
+        UUID duplicateJobId = jdbcTemplate.query(
+                "select latest_job_id from import_dedup where workspace_id = ? and checksum = ? and file_size = ?",
+                rs -> rs.next() ? (UUID) rs.getObject("latest_job_id") : null,
+                workspaceId, checksum, fileSize
+        );
+        if (duplicateJobId != null) {
+            jdbcTemplate.update(
+                    "insert into import_job_event (id, job_id, event_type, level, payload_json, created_at) " +
+                            "values (?, ?, 'DEDUP_HIT', 'INFO', ?::jsonb, now())",
+                    UUID.randomUUID(),
+                    duplicateJobId,
+                    "{\"source\":\"user\"}"
+            );
+            return new UserImportCreateResponse(duplicateJobId);
+        }
 
         UserFileStorageService.StoredFile stored;
         try {
@@ -58,14 +77,39 @@ public class UserImportService {
 
         UUID jobId = UUID.randomUUID();
         jdbcTemplate.update(
-                "insert into import_job (id, tenant_id, workspace_id, status, file_uri, total_rows, processed_rows, success_count, fail_count, error_log_uri, created_at, started_at, finished_at) " +
-                        "values (?, ?, ?, ?, ?, 0, 0, 0, 0, null, now(), null, null)",
-                jobId, workspaceId, workspaceId, "CREATED", stored.fileUri()
+                "insert into import_job " +
+                        "(id, tenant_id, workspace_id, status, file_uri, original_filename, file_size, checksum, total_rows, processed_rows, success_count, fail_count, error_log_uri, created_at, started_at, finished_at) " +
+                        "values (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, null, now(), null, null)",
+                jobId, workspaceId, workspaceId, "CREATED", stored.fileUri(), file.getOriginalFilename(), fileSize, checksum
         );
         userBillingService.addUploadAcceptedUsage(workspaceId, file.getSize());
+        jdbcTemplate.update(
+                "insert into import_dedup (id, workspace_id, checksum, file_size, latest_job_id, created_at, updated_at) " +
+                        "values (?, ?, ?, ?, ?, now(), now()) " +
+                        "on conflict (workspace_id, checksum, file_size) do update set latest_job_id = excluded.latest_job_id, updated_at = now()",
+                UUID.randomUUID(), workspaceId, checksum, fileSize, jobId
+        );
+
+        Integer nextRunNo = jdbcTemplate.queryForObject(
+                "select coalesce(max(run_no), 0) + 1 from import_job_run where job_id = ?",
+                Integer.class,
+                jobId
+        );
+        int runNo = nextRunNo == null ? 1 : nextRunNo;
+        UUID runId = UUID.randomUUID();
+        jdbcTemplate.update(
+                "insert into import_job_run (id, job_id, run_no, worker_id, status, created_at, updated_at) " +
+                        "values (?, ?, ?, ?, 'QUEUED', now(), now())",
+                runId, jobId, runNo, "user-local"
+        );
+        jdbcTemplate.update(
+                "insert into import_job_event (id, job_id, event_type, level, payload_json, created_at) " +
+                        "values (?, ?, 'JOB_DISPATCHED', 'INFO', ?::jsonb, now())",
+                UUID.randomUUID(), jobId, "{\"runNo\":" + runNo + ",\"source\":\"user\"}"
+        );
 
         userImportEventPublisher.publish(
-                new UserImportProcessRequestedEvent(jobId, stored.extension(), stored.fileUri(), Instant.now())
+                new UserImportProcessRequestedEvent(jobId, runId, runNo, stored.extension(), stored.fileUri(), Instant.now())
         );
         return new UserImportCreateResponse(jobId);
     }
@@ -230,6 +274,28 @@ public class UserImportService {
                     processedRows,
                     createdAt
             );
+        }
+    }
+
+    private byte[] readBytes(MultipartFile file) {
+        try {
+            return file.getBytes();
+        } catch (Exception e) {
+            throw new UserWasException(500, "failed to read file");
+        }
+    }
+
+    private String sha256Hex(byte[] content) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest(content);
+            StringBuilder sb = new StringBuilder(digest.length * 2);
+            for (byte b : digest) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            throw new UserWasException(500, "failed to compute checksum");
         }
     }
 }

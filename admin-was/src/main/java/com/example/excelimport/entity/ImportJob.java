@@ -25,6 +25,15 @@ public class ImportJob {
     @Column(name = "file_uri", nullable = false)
     private String fileUri;
 
+    @Column(name = "original_filename")
+    private String originalFilename;
+
+    @Column(name = "file_size")
+    private Long fileSize;
+
+    @Column(name = "checksum", length = 128)
+    private String checksum;
+
     @Column(name = "total_rows", nullable = false)
     private int totalRows;
 
@@ -75,6 +84,12 @@ public class ImportJob {
     public void setStatus(ImportJobStatus status) { this.status = status; }
     public String getFileUri() { return fileUri; }
     public void setFileUri(String fileUri) { this.fileUri = fileUri; }
+    public String getOriginalFilename() { return originalFilename; }
+    public void setOriginalFilename(String originalFilename) { this.originalFilename = originalFilename; }
+    public Long getFileSize() { return fileSize; }
+    public void setFileSize(Long fileSize) { this.fileSize = fileSize; }
+    public String getChecksum() { return checksum; }
+    public void setChecksum(String checksum) { this.checksum = checksum; }
     public int getTotalRows() { return totalRows; }
     public void setTotalRows(int totalRows) { this.totalRows = totalRows; }
     public int getProcessedRows() { return processedRows; }

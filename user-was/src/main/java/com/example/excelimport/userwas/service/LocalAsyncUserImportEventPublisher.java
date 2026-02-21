@@ -15,6 +15,6 @@ public class LocalAsyncUserImportEventPublisher implements UserImportEventPublis
 
     @Override
     public void publish(UserImportProcessRequestedEvent event) {
-        processingService.processAsync(event.jobId(), event.extension(), event.fileUri());
+        processingService.processAsync(event.jobId(), event.runId(), event.runNo(), event.extension(), event.fileUri());
     }
 }

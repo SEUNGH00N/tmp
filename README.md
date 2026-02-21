@@ -34,6 +34,10 @@
   - `db_connection` 테이블
   - `password_enc` + `key_version` 저장 정책
   - 사용자 연결 등록/조회/연결 테스트 API
+- 비동기 신뢰성/관측(V10):
+  - `import_job_run`, `import_job_event`, `import_job_metric`, `import_dedup`
+  - 업로드 중복 파일 dedup 처리
+  - run 단위 상태/에러/메트릭 적재
 
 ## Run
 1. Infra

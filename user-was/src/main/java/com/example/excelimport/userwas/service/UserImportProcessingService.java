@@ -38,10 +38,12 @@ public class UserImportProcessingService {
     }
 
     @Async("userImportExecutor")
-    public void processAsync(UUID jobId, String extension, String fileUri) {
+    public void processAsync(UUID jobId, UUID runId, int runNo, String extension, String fileUri) {
         UUID workspaceId = null;
         try {
             workspaceId = lookupWorkspaceId(jobId);
+            markRunRunning(runId);
+            addEvent(jobId, "RUN_STARTED", "INFO", "{\"runNo\":" + runNo + "}");
             updateStatus(jobId, "PARSING");
             jdbcTemplate.update("update import_job set started_at = now() where id = ?", jobId);
 
@@ -85,6 +87,13 @@ public class UserImportProcessingService {
                     "update import_job set status = ?, processed_rows = ?, success_count = ?, fail_count = ?, finished_at = now() where id = ?",
                     "COMPLETED", processed, success, fail, jobId
             );
+            markRunCompleted(runId);
+            addMetric(jobId, "run_no", runNo);
+            addMetric(jobId, "success_count", success);
+            addMetric(jobId, "fail_count", fail);
+            addMetric(jobId, "processed_rows", processed);
+            addEvent(jobId, "RUN_COMPLETED", "INFO",
+                    "{\"runNo\":" + runNo + ",\"processed\":" + processed + ",\"success\":" + success + ",\"failed\":" + fail + "}");
             if (workspaceId != null) {
                 userBillingService.addProcessingOutcome(workspaceId, processed, fail);
             }
@@ -93,6 +102,9 @@ public class UserImportProcessingService {
                     "update import_job set status = ?, finished_at = now() where id = ?",
                     "FAILED", jobId
             );
+            markRunFailed(runId, ex.getMessage());
+            addEvent(jobId, "RUN_FAILED", "ERROR",
+                    "{\"runNo\":" + runNo + ",\"message\":\"" + escapeJson(ex.getMessage()) + "\"}");
         }
     }
 
@@ -109,6 +121,55 @@ public class UserImportProcessingService {
                 "update import_job set status = ? where id = ?",
                 status, jobId
         );
+    }
+
+    private void markRunRunning(UUID runId) {
+        jdbcTemplate.update(
+                "update import_job_run set status = 'RUNNING', started_at = now(), updated_at = now() where id = ?",
+                runId
+        );
+    }
+
+    private void markRunCompleted(UUID runId) {
+        jdbcTemplate.update(
+                "update import_job_run set status = 'COMPLETED', finished_at = now(), updated_at = now() where id = ?",
+                runId
+        );
+    }
+
+    private void markRunFailed(UUID runId, String error) {
+        jdbcTemplate.update(
+                "update import_job_run set status = 'FAILED', finished_at = now(), error = ?, updated_at = now() where id = ?",
+                truncate(error, 2000), runId
+        );
+    }
+
+    private void addEvent(UUID jobId, String type, String level, String payloadJson) {
+        jdbcTemplate.update(
+                "insert into import_job_event (id, job_id, event_type, level, payload_json, created_at) values (?, ?, ?, ?, ?::jsonb, now())",
+                UUID.randomUUID(), jobId, type, level, payloadJson
+        );
+    }
+
+    private void addMetric(UUID jobId, String key, double value) {
+        jdbcTemplate.update(
+                "insert into import_job_metric (id, job_id, metric_key, metric_value, created_at) values (?, ?, ?, ?, now())",
+                UUID.randomUUID(), jobId, key, value
+        );
+    }
+
+    private String escapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    private String truncate(String value, int maxLen) {
+        if (value == null || value.length() <= maxLen) {
+            return value;
+        }
+        return value.substring(0, maxLen);
     }
 
     private List<String[]> validate(Map<String, String> row) {

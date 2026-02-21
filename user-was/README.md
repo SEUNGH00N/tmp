@@ -38,6 +38,12 @@ mvn spring-boot:run
 - `password_enc`(AES-GCM) + `key_version` 저장
 - `secret_ref` 방식도 지원(외부 Secret Manager 연동 지점)
 
+## Async Reliability & Observability (V10)
+- 업로드 시 `import_dedup` 확인 후 중복이면 기존 `jobId` 반환
+- 실행 이력: `import_job_run` (`QUEUED/RUNNING/COMPLETED/FAILED`)
+- 이벤트 로그: `import_job_event`
+- 메트릭: `import_job_metric`
+
 ## Workspace Session API
 - `POST /api/v1/user/imports/session/workspace?workspace_id=...`
 - `GET /api/v1/user/imports/session/workspace`
