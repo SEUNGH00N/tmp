@@ -1,11 +1,15 @@
-# User WAS
+﻿# User WAS
 
 ## Scope
 - 사용자 업로드 API
-- 잡 목록/상태/상세(행/에러) 조회
+- 잡 목록/상세/행/에러 조회 API
 - 사용자 포털(`/user/*`)
 
 ## Runtime
+### Docker Gateway
+- User Portal: `http://127.0.0.1:8080`
+
+### Local Run
 - Port: `8081`
 - Base URL: `http://localhost:8081`
 
@@ -15,60 +19,32 @@ cd .\user-was
 mvn spring-boot:run
 ```
 
-## API
+## User APIs
 - `POST /api/v1/user/imports` (`multipart`: `workspace_id`, `file`)
-  - 하위호환: `tenant_id` 허용
-- `GET /api/v1/user/imports?workspace_id=...&page=0&size=20`
+- `GET /api/v1/user/imports?workspace_id=...`
 - `GET /api/v1/user/imports/{jobId}?workspace_id=...`
-- `GET /api/v1/user/imports/{jobId}/rows?workspace_id=...&page=0&size=50`
-- `GET /api/v1/user/imports/{jobId}/errors?workspace_id=...&page=0&size=50`
+- `GET /api/v1/user/imports/{jobId}/rows?workspace_id=...`
+- `GET /api/v1/user/imports/{jobId}/errors?workspace_id=...`
 
-## Billing API (V8)
+## Billing APIs (V8)
 - `GET /api/v1/user/billing/plan?workspace_id=...`
 - `GET /api/v1/user/billing/subscription?workspace_id=...`
 - `GET /api/v1/user/billing/summary?workspace_id=...`
 
-## DB Connection API (V9)
+## DB Connection APIs (V9)
 - `POST /api/v1/user/db-connections?workspace_id=...`
 - `GET /api/v1/user/db-connections?workspace_id=...`
 - `POST /api/v1/user/db-connections/{connectionId}/test?workspace_id=...`
 
-### Security Policy
-- 비밀번호는 평문 저장 금지
-- `password_enc`(AES-GCM) + `key_version` 저장
-- `secret_ref` 방식도 지원(외부 Secret Manager 연동 지점)
-
-## Async Reliability & Observability (V10)
-- 업로드 시 `import_dedup` 확인 후 중복이면 기존 `jobId` 반환
-- 실행 이력: `import_job_run` (`QUEUED/RUNNING/COMPLETED/FAILED`)
-- 이벤트 로그: `import_job_event`
-- 메트릭: `import_job_metric`
-
-## Workspace Session API
+## Workspace Session APIs
 - `POST /api/v1/user/imports/session/workspace?workspace_id=...`
 - `GET /api/v1/user/imports/session/workspace`
 
-## Import Dispatch Mode
-- 설정: `app.user-import.dispatch-mode`
-  - `sync` (기본): 내부 async worker 처리
-  - `kafka`: Kafka producer adapter 지점 사용(현재 local fallback 가능)
-- 설정: `app.user-import.kafka.local-fallback-enabled`
-
 ## Redis
-- 세션 저장: Redis
-- workspace 세션 컨텍스트를 Redis-backed Session으로 유지
+- Session namespace: `user-was:session`
+- workspace context는 Redis-backed session으로 유지
 
-## Front Pages
-- `GET /` -> `/user/login.html`
-- `GET /user/login.html`
-- `GET /user/dashboard.html`
-- `GET /user/job-detail.html?jobId=...`
-
-## Current Validation Rules
-- 상태 플로우: `CREATED -> PARSING -> VALIDATING -> LOADING -> COMPLETED/FAILED`
-- 검증:
-  - `col_1` 필수 (`IMP-VAL-001`)
-  - 셀 길이 255 초과 금지 (`IMP-VAL-002`)
-- 업로드 시 플랜 기반 quota 검사:
-  - 월 업로드 횟수(`monthly_upload_quota`)
-  - 파일 최대 용량(`max_file_size_mb`)
+## Notes
+- 업로드 dedup (`import_dedup`) 적용
+- run/event/metric 기반 비동기 관측 구조 적용
+- Actuator health endpoint 활성화됨

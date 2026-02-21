@@ -1,21 +1,168 @@
-services:
+﻿services:
   postgres:
     image: postgres:15
-    container_name: excel-import-postgres
     environment:
-      POSTGRES_DB: exceldb
-      POSTGRES_USER: excel
-      POSTGRES_PASSWORD: excel
+      POSTGRES_DB: ${POSTGRES_DB:-exceldb}
+      POSTGRES_USER: ${POSTGRES_USER:-excel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-excel}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-excel} -d ${POSTGRES_DB:-exceldb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - platform-net
 
   redis:
     image: redis:7
-    container_name: excel-import-redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - platform-net
+
+  admin-was-blue:
+    build:
+      context: .
+      dockerfile: docker/admin-was.Dockerfile
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-exceldb}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-excel}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-excel}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_SESSION_STORE_TYPE: redis
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+    restart: unless-stopped
+    networks:
+      - platform-net
+
+  admin-was-green:
+    build:
+      context: .
+      dockerfile: docker/admin-was.Dockerfile
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-exceldb}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-excel}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-excel}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_SESSION_STORE_TYPE: redis
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+    restart: unless-stopped
+    networks:
+      - platform-net
+
+  user-was-blue:
+    build:
+      context: .
+      dockerfile: docker/user-was.Dockerfile
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-exceldb}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-excel}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-excel}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_SESSION_STORE_TYPE: redis
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+    restart: unless-stopped
+    networks:
+      - platform-net
+
+  user-was-green:
+    build:
+      context: .
+      dockerfile: docker/user-was.Dockerfile
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-exceldb}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-excel}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-excel}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_SESSION_STORE_TYPE: redis
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+    restart: unless-stopped
+    networks:
+      - platform-net
+
+  gateway:
+    image: nginx:1.27-alpine
+    depends_on:
+      admin-was-green:
+        condition: service_healthy
+      user-was-green:
+        condition: service_healthy
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    restart: unless-stopped
+    networks:
+      - platform-net
 
 volumes:
   pgdata:
+
+networks:
+  platform-net:
+    name: excel-import-platform-net
+

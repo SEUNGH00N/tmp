@@ -1,58 +1,49 @@
-# Excel Import Platform
+﻿# Excel Import Platform
 
 ## Overview
-`admin-was` + `user-was` 분리 구조의 Excel Import SaaS MVP 프로젝트입니다.
+`admin-was` + `user-was` + `platform-common` 멀티모듈 기반 Excel Import SaaS MVP 프로젝트입니다.
 
-- `admin-was`: 인증/권한/관리 화면/마이그레이션 소유
-- `user-was`: 사용자 업로드/잡 조회/에러 조회
-- 공용 DB: PostgreSQL
-- 공용 세션 스토어: Redis
+- `admin-was`: 관리자 인증/인가, 운영 API, 마이그레이션 소유
+- `user-was`: 사용자 업로드/조회 포털 API
+- 공용 인프라: PostgreSQL, Redis
 
 ## Modules
+- `platform-common`
 - `admin-was`
 - `user-was`
-- `platform-common`
 
 ## Runtime Ports
+### Docker Gateway (권장)
+- User Portal: `http://127.0.0.1:8080`
+- Admin Portal: `http://127.0.0.1:8081`
+- PostgreSQL: `127.0.0.1:5432`
+- Redis: `127.0.0.1:6379`
+
+### Local Spring Boot Direct Run
 - Admin WAS: `http://localhost:8080`
 - User WAS: `http://localhost:8081`
-- PostgreSQL: `localhost:5432`
-- Redis: `localhost:6379`
 
-## Current Architecture
-- 인증: `HttpSession + Bearer Token` 병행 지원
-- 세션 저장: Redis (`spring-session-data-redis`)
-- 업로드 처리: `Event Publisher` 경유 구조
-  - 기본: `sync` 모드(내부 async worker 호출)
-  - 확장: `kafka` 모드(현재 producer adapter 지점만 준비)
-- 테넌트 컨텍스트: `workspace_id` 기준
-- 과금/사용량(V8):
-  - `billing_plan`, `plan_feature`, `workspace_subscription`, `workspace_usage_daily`
-  - 업로드 quota 검사(월 업로드 횟수/최대 파일 크기)
-  - 사용자 포털에서 플랜/사용량 요약 조회
-- DB 연결 보안(V9):
-  - `db_connection` 테이블
-  - `password_enc` + `key_version` 저장 정책
-  - 사용자 연결 등록/조회/연결 테스트 API
-- 비동기 신뢰성/관측(V10):
-  - `import_job_run`, `import_job_event`, `import_job_metric`, `import_dedup`
-  - 업로드 중복 파일 dedup 처리
-  - run 단위 상태/에러/메트릭 적재
+## Current Deployment Baseline
+- `docker-compose.yml` 구성:
+  - `gateway` (nginx reverse proxy)
+  - `admin-was-green`, `user-was-green` (현재 active)
+  - `admin-was-blue`, `user-was-blue` (정의는 유지, 현재 미사용)
+  - `postgres`, `redis`
+- 앱 헬스체크:
+  - `/actuator/health/readiness`
+  - `/actuator/health/liveness`
+
+## Redis Usage
+- Session Store: `spring-session-data-redis`
+- Admin Token Store: `auth:token:*`
+- Session namespace 분리:
+  - admin: `admin-was:session`
+  - user: `user-was:session`
 
 ## Run
-1. Infra
 ```powershell
-docker compose -f .\docker-compose.yml up -d
-```
-2. Admin WAS
-```powershell
-cd .\admin-was
-mvn spring-boot:run
-```
-3. User WAS
-```powershell
-cd .\user-was
-mvn spring-boot:run
+cd .\
+docker compose up -d --build
 ```
 
 ## Test
@@ -61,13 +52,17 @@ cd .\
 mvn clean test
 ```
 
-## Docs
-- `ERD.md`: As-Is / To-Be ERD
-- `WBS.md`: 단일 개발자 기준 실행 WBS
-- `admin-was/README.md`: Admin 상세
-- `user-was/README.md`: User 상세
+## Kubernetes Preparation
+- `deploy/k8s/base`에 base manifest 추가됨
+- readiness/liveness probe + rolling update 전략 반영
+- Docker/K8s 환경변수 키 정렬
 
-## Next Focus
-- Admin: RBAC 확장(권한 단위 API 인가), 감사로그 고도화
-- User: 플랜/사용량 제한(`usage_daily`) 반영
-- Common: Kafka producer/consumer 실제 연결 및 DLQ 전략
+## Docs
+- `ERD.md`
+- `WBS.md`
+- `admin-was/README.md`
+- `user-was/README.md`
+
+## Troubleshooting
+- `localhost`에서 IPv4/IPv6 라우팅이 섞이면 정적 리소스가 간헐 실패할 수 있음
+- 포털 접근은 `127.0.0.1` 사용 권장

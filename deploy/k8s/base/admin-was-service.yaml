@@ -1,0 +1,12 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: admin-was
+  namespace: excel-import
+spec:
+  selector:
+    app: admin-was
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080

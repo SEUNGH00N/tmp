@@ -1,0 +1,10 @@
+﻿apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-config
+  namespace: excel-import
+data:
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/exceldb
+  SPRING_DATA_REDIS_HOST: redis
+  SPRING_DATA_REDIS_PORT: "6379"
+  SPRING_SESSION_STORE_TYPE: redis
