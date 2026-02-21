@@ -8,7 +8,17 @@ spring:
     password: excel
   flyway:
     enabled: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  session:
+    store-type: redis
 
 app:
+  user-import:
+    dispatch-mode: sync
+    kafka:
+      local-fallback-enabled: true
   storage:
     root: ./storage

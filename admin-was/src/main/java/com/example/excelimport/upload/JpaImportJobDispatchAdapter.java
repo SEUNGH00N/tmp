@@ -3,21 +3,21 @@ package com.example.excelimport.upload;
 import com.example.excelimport.entity.ImportJob;
 import com.example.excelimport.entity.ImportJobStatus;
 import com.example.excelimport.repository.ImportJobRepository;
-import com.example.excelimport.service.ImportWorkerService;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Component
 public class JpaImportJobDispatchAdapter implements ImportJobDispatchPort {
 
     private final ImportJobRepository importJobRepository;
-    private final ImportWorkerService importWorkerService;
+    private final ImportJobEventPublisher importJobEventPublisher;
 
     public JpaImportJobDispatchAdapter(ImportJobRepository importJobRepository,
-                                       ImportWorkerService importWorkerService) {
+                                       ImportJobEventPublisher importJobEventPublisher) {
         this.importJobRepository = importJobRepository;
-        this.importWorkerService = importWorkerService;
+        this.importJobEventPublisher = importJobEventPublisher;
     }
 
     @Override
@@ -37,6 +37,6 @@ public class JpaImportJobDispatchAdapter implements ImportJobDispatchPort {
 
     @Override
     public void dispatch(UUID jobId, String extension) {
-        importWorkerService.processAsync(jobId, extension);
+        importJobEventPublisher.publish(new ImportJobProcessRequestedEvent(jobId, extension, Instant.now()));
     }
 }

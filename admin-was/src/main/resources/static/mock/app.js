@@ -1,9 +1,28 @@
-﻿window.ExcelApp = (() => {
+window.ExcelApp = (() => {
+  const TOKEN_KEY = 'admin_access_token';
+
+  function getToken() {
+    return localStorage.getItem(TOKEN_KEY) || '';
+  }
+
+  function setToken(token) {
+    if (!token) return;
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+
+  function clearToken() {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+
   async function api(path, options = {}) {
     const headers = { ...(options.headers || {}) };
     const isFormData = options.body instanceof FormData;
     if (!isFormData && !headers['Content-Type']) {
       headers['Content-Type'] = 'application/json';
+    }
+    const token = getToken();
+    if (token && !headers['Authorization']) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     const res = await fetch(path, {
@@ -29,6 +48,7 @@
   async function requireAuth() {
     const auth = await authStatus();
     if (!auth.authenticated) {
+      clearToken();
       window.location.href = '/login.html';
       return null;
     }
@@ -46,6 +66,7 @@
 
   async function logout() {
     await api('/api/v1/auth/logout', { method: 'POST' });
+    clearToken();
     window.location.href = '/login.html';
   }
 
@@ -54,5 +75,5 @@
     return new Date(v).toLocaleString();
   }
 
-  return { api, authStatus, requireAuth, ensureGuest, logout, formatDate };
+  return { api, authStatus, requireAuth, ensureGuest, logout, formatDate, setToken, getToken, clearToken };
 })();

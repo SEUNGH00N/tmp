@@ -10,10 +10,21 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
 
+    private final TokenService tokenService;
+
+    public AuthInterceptor(TokenService tokenService) {
+        this.tokenService = tokenService;
+    }
+
     @Override
     public boolean preHandle(HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, Object handler) {
         HttpSession session = request.getSession(false);
-        if (session != null && session.getAttribute(SessionKeys.AUTH_USER) != null) {
+        String username = session == null ? null : (String) session.getAttribute(SessionKeys.AUTH_USER);
+        if (username == null || username.isBlank()) {
+            username = tokenService.resolveUsername(extractBearerToken(request));
+        }
+
+        if (username != null && !username.isBlank()) {
             return true;
         }
 
@@ -28,5 +39,17 @@ public class AuthInterceptor implements HandlerInterceptor {
                 "https://example.com/problems/unauthorized",
                 "Unauthorized",
                 "login required");
+    }
+
+    private String extractBearerToken(HttpServletRequest request) {
+        String auth = request.getHeader("Authorization");
+        if (auth == null) {
+            return null;
+        }
+        String prefix = "Bearer ";
+        if (!auth.startsWith(prefix)) {
+            return null;
+        }
+        return auth.substring(prefix.length()).trim();
     }
 }

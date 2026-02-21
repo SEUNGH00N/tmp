@@ -27,16 +27,16 @@ public class UserImportService {
 
     private final JdbcTemplate jdbcTemplate;
     private final UserFileStorageService storageService;
-    private final UserImportProcessingService processingService;
+    private final UserImportEventPublisher userImportEventPublisher;
 
     public UserImportService(
             JdbcTemplate jdbcTemplate,
             UserFileStorageService storageService,
-            UserImportProcessingService processingService
+            UserImportEventPublisher userImportEventPublisher
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.storageService = storageService;
-        this.processingService = processingService;
+        this.userImportEventPublisher = userImportEventPublisher;
     }
 
     public UserImportCreateResponse create(UUID workspaceId, MultipartFile file) {
@@ -59,7 +59,9 @@ public class UserImportService {
                 jobId, workspaceId, workspaceId, "CREATED", stored.fileUri()
         );
 
-        processingService.processAsync(jobId, stored.extension(), stored.fileUri());
+        userImportEventPublisher.publish(
+                new UserImportProcessRequestedEvent(jobId, stored.extension(), stored.fileUri(), Instant.now())
+        );
         return new UserImportCreateResponse(jobId);
     }
 
@@ -186,7 +188,7 @@ public class UserImportService {
         jdbcTemplate.update(
                 "insert into workspace (id, slug, name, status, owner_account_id, created_at, updated_at) values (?, ?, ?, 'ACTIVE', ?, now(), now())",
                 workspaceId,
-                "ws-" + workspaceId.toString().replace("-", "").substring(0, 8),
+                "ws-" + workspaceId.toString().replace("-", ""),
                 "Workspace " + workspaceId.toString().substring(0, 8),
                 workspaceId
         );

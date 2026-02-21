@@ -25,6 +25,12 @@
       max-request-size: 20MB
 
 app:
+  auth:
+    token-ttl-seconds: 43200
+  import:
+    dispatch-mode: sync
+    kafka:
+      local-fallback-enabled: true
   storage:
     root: ./storage
     retention-days: 30

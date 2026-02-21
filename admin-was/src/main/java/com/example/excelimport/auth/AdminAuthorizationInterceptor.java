@@ -17,15 +17,21 @@ public class AdminAuthorizationInterceptor implements HandlerInterceptor {
     private static final Set<String> WRITE_ROLES = Set.of("SUPER_ADMIN", "ADMIN");
 
     private final RoleAuthorizationService roleAuthorizationService;
+    private final TokenService tokenService;
 
-    public AdminAuthorizationInterceptor(RoleAuthorizationService roleAuthorizationService) {
+    public AdminAuthorizationInterceptor(RoleAuthorizationService roleAuthorizationService,
+                                         TokenService tokenService) {
         this.roleAuthorizationService = roleAuthorizationService;
+        this.tokenService = tokenService;
     }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         HttpSession session = request.getSession(false);
         String username = session == null ? null : (String) session.getAttribute(SessionKeys.AUTH_USER);
+        if (username == null || username.isBlank()) {
+            username = tokenService.resolveUsername(extractBearerToken(request));
+        }
         String uri = request.getRequestURI();
 
         if (username == null || username.isBlank()) {
@@ -48,5 +54,17 @@ public class AdminAuthorizationInterceptor implements HandlerInterceptor {
                     "insufficient role");
         }
         return true;
+    }
+
+    private String extractBearerToken(HttpServletRequest request) {
+        String auth = request.getHeader("Authorization");
+        if (auth == null) {
+            return null;
+        }
+        String prefix = "Bearer ";
+        if (!auth.startsWith(prefix)) {
+            return null;
+        }
+        return auth.substring(prefix.length()).trim();
     }
 }

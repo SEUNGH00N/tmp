@@ -59,7 +59,8 @@
         async submitLogin() {
           this.loading = true; this.message = '';
           try {
-            await ExcelApp.api('/api/v1/auth/login', { method: 'POST', body: JSON.stringify({ username: this.username, password: this.password }) });
+            const resp = await ExcelApp.api('/api/v1/auth/login', { method: 'POST', body: JSON.stringify({ username: this.username, password: this.password }) });
+            ExcelApp.setToken(resp?.data?.accessToken || '');
             window.location.href = '/mock/dashboard.html';
           } catch (e) {
             this.message = e.message; this.messageError = true;
