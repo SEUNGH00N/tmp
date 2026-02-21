@@ -30,6 +30,10 @@
   - `billing_plan`, `plan_feature`, `workspace_subscription`, `workspace_usage_daily`
   - 업로드 quota 검사(월 업로드 횟수/최대 파일 크기)
   - 사용자 포털에서 플랜/사용량 요약 조회
+- DB 연결 보안(V9):
+  - `db_connection` 테이블
+  - `password_enc` + `key_version` 저장 정책
+  - 사용자 연결 등록/조회/연결 테스트 API
 
 ## Run
 1. Infra

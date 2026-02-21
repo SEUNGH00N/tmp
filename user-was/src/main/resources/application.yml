@@ -16,6 +16,9 @@ spring:
     store-type: redis
 
 app:
+  security:
+    connection-key-version: 1
+    connection-secret-base64: MDEyMzQ1Njc4OUFCQ0RFRjAxMjM0NTY3ODlBQkNERUY=
   user-import:
     dispatch-mode: sync
     kafka:

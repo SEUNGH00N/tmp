@@ -47,9 +47,9 @@
 - [x] 한도 초과 UX
 
 ## 3. Phase 3 (V9): DB 연결 보안
-- [ ] `db_connection` + `secret_ref` 모델
-- [ ] 연결 등록/검증 API
-- [ ] 암호화/키버전 정책
+- [x] `db_connection` + `secret_ref` 모델
+- [x] 연결 등록/검증 API
+- [x] 암호화/키버전 정책
 
 ## 4. Phase 4 (V10): 비동기 신뢰성/관측
 - [ ] `import_job_run`

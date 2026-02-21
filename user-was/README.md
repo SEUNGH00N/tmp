@@ -28,6 +28,16 @@ mvn spring-boot:run
 - `GET /api/v1/user/billing/subscription?workspace_id=...`
 - `GET /api/v1/user/billing/summary?workspace_id=...`
 
+## DB Connection API (V9)
+- `POST /api/v1/user/db-connections?workspace_id=...`
+- `GET /api/v1/user/db-connections?workspace_id=...`
+- `POST /api/v1/user/db-connections/{connectionId}/test?workspace_id=...`
+
+### Security Policy
+- 비밀번호는 평문 저장 금지
+- `password_enc`(AES-GCM) + `key_version` 저장
+- `secret_ref` 방식도 지원(외부 Secret Manager 연동 지점)
+
 ## Workspace Session API
 - `POST /api/v1/user/imports/session/workspace?workspace_id=...`
 - `GET /api/v1/user/imports/session/workspace`
