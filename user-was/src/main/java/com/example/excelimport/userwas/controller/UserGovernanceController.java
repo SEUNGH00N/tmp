@@ -4,10 +4,9 @@ import com.example.excelimport.common.web.ApiResponse;
 import com.example.excelimport.userwas.dto.UserApprovalRequestCreateRequest;
 import com.example.excelimport.userwas.dto.UserApprovalRequestItem;
 import com.example.excelimport.userwas.dto.UserFeatureFlagItem;
-import com.example.excelimport.userwas.exception.UserWasException;
 import com.example.excelimport.userwas.service.UserGovernanceService;
+import com.example.excelimport.userwas.web.WorkspaceContextResolver;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,11 +22,13 @@ import java.util.UUID;
 @RequestMapping("/api/v1/user")
 public class UserGovernanceController {
 
-    private static final String WS_SESSION_KEY = "USER_WORKSPACE_ID";
     private final UserGovernanceService userGovernanceService;
+    private final WorkspaceContextResolver workspaceContextResolver;
 
-    public UserGovernanceController(UserGovernanceService userGovernanceService) {
+    public UserGovernanceController(UserGovernanceService userGovernanceService,
+                                    WorkspaceContextResolver workspaceContextResolver) {
         this.userGovernanceService = userGovernanceService;
+        this.workspaceContextResolver = workspaceContextResolver;
     }
 
     @PostMapping("/approvals/imports/{jobId}/request")
@@ -38,7 +39,7 @@ public class UserGovernanceController {
             @RequestBody(required = false) UserApprovalRequestCreateRequest body,
             HttpServletRequest request
     ) {
-        UUID effectiveWorkspaceId = resolveWorkspaceId(workspaceId, tenantId, request);
+        UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, request);
         String requestedBy = "workspace-user";
         String mode = body == null ? null : body.policyMode();
         String reason = body == null ? null : body.reason();
@@ -52,7 +53,7 @@ public class UserGovernanceController {
             @RequestParam(value = "tenant_id", required = false) UUID tenantId,
             HttpServletRequest request
     ) {
-        UUID effectiveWorkspaceId = resolveWorkspaceId(workspaceId, tenantId, request);
+        UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, request);
         return ApiResponse.success(userGovernanceService.listApprovalRequests(effectiveWorkspaceId));
     }
 
@@ -62,26 +63,7 @@ public class UserGovernanceController {
             @RequestParam(value = "tenant_id", required = false) UUID tenantId,
             HttpServletRequest request
     ) {
-        UUID effectiveWorkspaceId = resolveWorkspaceId(workspaceId, tenantId, request);
+        UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, request);
         return ApiResponse.success(userGovernanceService.listFeatureFlags(effectiveWorkspaceId));
-    }
-
-    private UUID resolveWorkspaceId(UUID workspaceId, UUID tenantId, HttpServletRequest request) {
-        if (workspaceId != null) {
-            request.getSession(true).setAttribute(WS_SESSION_KEY, workspaceId.toString());
-            return workspaceId;
-        }
-        if (tenantId != null) {
-            request.getSession(true).setAttribute(WS_SESSION_KEY, tenantId.toString());
-            return tenantId;
-        }
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            Object attr = session.getAttribute(WS_SESSION_KEY);
-            if (attr != null) {
-                return UUID.fromString(attr.toString());
-            }
-        }
-        throw new UserWasException(400, "workspace_id is required");
     }
 }
