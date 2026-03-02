@@ -14,20 +14,32 @@
   <div id="app" class="min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-md bg-white border rounded-2xl shadow-xl p-8">
       <div class="flex items-center gap-3 mb-5"><div class="bg-primary rounded-lg p-2 text-white"><span class="material-symbols-outlined">person</span></div><div><h1 class="text-lg font-bold">User Portal</h1><p class="text-xs text-slate-500">Workspace access login</p></div></div>
-      <form class="space-y-3" @submit.prevent="go"><input v-model="workspaceId" class="w-full rounded-xl border-slate-300 focus:border-primary focus:ring-primary" placeholder="Workspace UUID" required /><button class="w-full rounded-xl bg-primary text-white py-2.5 font-bold">Continue</button><p class="text-xs text-slate-500">Example: workspace UUID</p></form>
+      <form class="space-y-3" @submit.prevent="go"><input v-model="workspaceId" class="w-full rounded-xl border-slate-300 focus:border-primary focus:ring-primary" placeholder="Workspace UUID" required /><button :disabled="loading" class="w-full rounded-xl bg-primary text-white py-2.5 font-bold disabled:opacity-60">{{ loading ? 'Checking...' : 'Continue' }}</button><p class="text-xs text-slate-500">Example: workspace UUID</p><p v-if="errorMsg" class="text-xs text-red-600">{{ errorMsg }}</p></form>
     </div>
   </div>
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <script src="/user/app.js"></script>
   <script>
     Vue.createApp({
-      data(){return{workspaceId:UserApp.getWorkspaceId()};},
+      data(){return{workspaceId:UserApp.getWorkspaceId(),loading:false,errorMsg:''};},
       methods:{
         async go(){
           const ws=this.workspaceId.trim();
+          if(!ws){return;}
+          this.loading=true;
+          this.errorMsg='';
           UserApp.setWorkspaceId(ws);
-          await UserApp.bindWorkspaceSession(ws);
-          window.location.href='/user/dashboard.html';
+          try{
+            await UserApp.api(`/api/v1/user/billing/summary?workspace_id=${encodeURIComponent(ws)}`,{method:'GET'});
+            await UserApp.bindWorkspaceSession(ws);
+            window.location.href='/user/dashboard.html';
+          }catch(e){
+            this.errorMsg=e.message || 'workspace validation failed';
+            localStorage.removeItem('user_workspace_id');
+            localStorage.removeItem('user_tenant_id');
+          }finally{
+            this.loading=false;
+          }
         }
       }
     }).mount('#app');

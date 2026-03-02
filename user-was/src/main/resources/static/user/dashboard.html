@@ -52,7 +52,18 @@
   <script>
     Vue.createApp({
       data(){return{workspaceId:'',jobs:[],billing:null,quotaBlocked:false,uploading:false,uploadMsg:'',uploadError:false};},
-      async mounted(){this.workspaceId=UserApp.requireWorkspace();if(!this.workspaceId)return;await UserApp.bindWorkspaceSession(this.workspaceId);await Promise.all([this.fetchJobs(), this.fetchBilling()]);},
+      async mounted(){
+        this.workspaceId=UserApp.requireWorkspace();
+        if(!this.workspaceId)return;
+        try{
+          await UserApp.bindWorkspaceSession(this.workspaceId);
+          await Promise.all([this.fetchJobs(), this.fetchBilling()]);
+        }catch(e){
+          this.uploadError=true;
+          this.uploadMsg=e.message || 'workspace validation failed';
+          this.quotaBlocked=true;
+        }
+      },
       methods:{
         fmt(v){return UserApp.fmt(v);},
         logout(){UserApp.clearWorkspace();},
@@ -62,7 +73,7 @@
           this.quotaBlocked = (this.billing?.remainingMonthlyUploads || 0) <= 0;
         },
         async fetchJobs(){const res=await UserApp.api(`/api/v1/user/imports?workspace_id=${encodeURIComponent(this.workspaceId)}&page=0&size=20`,{method:'GET'});this.jobs=res.data.items||[];},
-        async upload(){if(this.quotaBlocked){this.uploadError=true;this.uploadMsg='monthly upload quota exceeded';return;}const file=this.$refs.file.files[0];if(!file){this.uploadError=true;this.uploadMsg='file is required';return;}this.uploading=true;this.uploadMsg='';try{const form=new FormData();form.append('workspace_id',this.workspaceId);form.append('file',file);const res=await UserApp.api('/api/v1/user/imports',{method:'POST',body:form});this.uploadError=false;this.uploadMsg=`created job: ${res.data.jobId}`;await Promise.all([this.fetchJobs(), this.fetchBilling()]);}catch(e){this.uploadError=true;this.uploadMsg=e.message;await this.fetchBilling();}finally{this.uploading=false;}}
+        async upload(){if(this.quotaBlocked){this.uploadError=true;this.uploadMsg='monthly upload quota exceeded';return;}const file=this.$refs.file.files[0];if(!file){this.uploadError=true;this.uploadMsg='file is required';return;}this.uploading=true;this.uploadMsg='';try{const form=new FormData();form.append('workspace_id',this.workspaceId);form.append('file',file);const res=await UserApp.api('/api/v1/user/imports',{method:'POST',body:form});this.uploadError=false;this.uploadMsg=`created job: ${res.data.jobId}`;await Promise.all([this.fetchJobs(), this.fetchBilling()]);}catch(e){this.uploadError=true;this.uploadMsg=e.message;try{await this.fetchBilling();}catch(_){this.quotaBlocked=true;}}finally{this.uploading=false;}}
       }
     }).mount('#app');
   </script>

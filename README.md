@@ -59,6 +59,12 @@ docker compose --env-file .env config
   - admin: `admin-was:session`
   - user: `user-was:session`
 
+## User Workspace Access Rule
+- User portal login (`/user/login.html`) validates workspace access by calling:
+  - `GET /api/v1/user/billing/summary?workspace_id=...`
+- If active subscription is missing, login does not proceed to dashboard and shows the API error message.
+- Upload API also depends on active subscription via billing quota validation.
+
 ## Run
 ```powershell
 cd .\
