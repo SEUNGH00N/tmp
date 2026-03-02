@@ -13,6 +13,8 @@ import com.example.excelimport.validation.RowValidator;
 import com.example.excelimport.validation.ValidationError;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ import java.util.UUID;
 
 @Service
 public class ImportWorkerService {
+    private static final Logger log = LoggerFactory.getLogger(ImportWorkerService.class);
 
     private final ImportJobRepository importJobRepository;
     private final ExcelRowDataRepository excelRowDataRepository;
@@ -112,6 +115,15 @@ public class ImportWorkerService {
             addEvent(jobId, "RUN_COMPLETED", "INFO",
                     "{\"runNo\":" + runNo + ",\"processed\":" + job.getProcessedRows() + ",\"success\":" + successRows + ",\"failed\":" + failedRows + "}");
         } catch (Exception e) {
+            log.error(
+                    "Import worker failed. jobId={}, runId={}, runNo={}, exceptionType={}, message={}",
+                    jobId,
+                    runId,
+                    runNo,
+                    e.getClass().getSimpleName(),
+                    e.getMessage(),
+                    e
+            );
             job.setStatus(ImportJobStatus.FAILED);
             job.setFinishedAt(Instant.now());
             importJobRepository.save(job);

@@ -7,6 +7,8 @@ import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import java.util.UUID;
 
 @Service
 public class UserImportProcessingService {
+    private static final Logger log = LoggerFactory.getLogger(UserImportProcessingService.class);
 
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
@@ -98,6 +101,15 @@ public class UserImportProcessingService {
                 userBillingService.addProcessingOutcome(workspaceId, processed, fail);
             }
         } catch (Exception ex) {
+            log.error(
+                    "User import worker failed. jobId={}, runId={}, runNo={}, exceptionType={}, message={}",
+                    jobId,
+                    runId,
+                    runNo,
+                    ex.getClass().getSimpleName(),
+                    ex.getMessage(),
+                    ex
+            );
             jdbcTemplate.update(
                     "update import_job set status = ?, finished_at = now() where id = ?",
                     "FAILED", jobId
