@@ -2,6 +2,8 @@ package com.example.excelimport.userwas.exception;
 
 import com.example.excelimport.common.web.RequestIdFilter;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatusCode;
@@ -15,8 +17,17 @@ import java.net.URI;
 @RestControllerAdvice
 public class UserWasExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(UserWasExceptionHandler.class);
+
     @ExceptionHandler(UserWasException.class)
     public ResponseEntity<ProblemDetail> handle(UserWasException ex, HttpServletRequest request) {
+        if (ex.getStatus() >= 500) {
+            log.error("request failed: requestId={}, path={}, exceptionType={}",
+                    requestId(request), request.getRequestURI(), ex.getClass().getSimpleName(), ex);
+        } else {
+            log.warn("request failed: requestId={}, path={}, exceptionType={}",
+                    requestId(request), request.getRequestURI(), ex.getClass().getSimpleName());
+        }
         HttpStatusCode status = HttpStatusCode.valueOf(ex.getStatus());
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
         pd.setType(URI.create(type(ex.getStatus())));

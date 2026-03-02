@@ -2,6 +2,8 @@ package com.example.excelimport.exception;
 
 import com.example.excelimport.common.web.RequestIdFilter;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -20,8 +22,11 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ProblemDetail> handleApi(ApiException ex, HttpServletRequest request) {
+        logWarn(ex, request);
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(ex.getStatus(), ex.getMessage());
         pd.setType(URI.create(ex.getType()));
         pd.setTitle(ex.getTitle());
@@ -33,21 +38,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({MethodArgumentTypeMismatchException.class, MethodArgumentNotValidException.class, IllegalArgumentException.class})
     public ResponseEntity<ProblemDetail> handleBadRequest(Exception ex, HttpServletRequest request) {
+        logWarn(ex, request);
         return problem(HttpStatus.BAD_REQUEST, "https://example.com/problems/bad-request", "Bad Request", ex.getMessage(), request, List.of());
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ProblemDetail> handleUpload(MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        logWarn(ex, request);
         return problem(HttpStatus.BAD_REQUEST, "https://example.com/problems/upload-too-large", "Upload Too Large", ex.getMessage(), request, List.of());
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ProblemDetail> handleNotFound(NoResourceFoundException ex, HttpServletRequest request) {
+        logWarn(ex, request);
         return problem(HttpStatus.NOT_FOUND, "https://example.com/problems/not-found", "Not Found", ex.getMessage(), request, List.of());
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleUnexpected(Exception ex, HttpServletRequest request) {
+        logError(ex, request);
         return problem(HttpStatus.INTERNAL_SERVER_ERROR, "https://example.com/problems/internal-error", "Internal Server Error", ex.getMessage(), request, List.of());
     }
 
@@ -64,5 +73,15 @@ public class GlobalExceptionHandler {
     private String requestId(HttpServletRequest request) {
         Object v = request.getAttribute(RequestIdFilter.REQUEST_ID_ATTR);
         return v == null ? "" : v.toString();
+    }
+
+    private void logWarn(Exception ex, HttpServletRequest request) {
+        log.warn("request failed: requestId={}, path={}, exceptionType={}",
+                requestId(request), request.getRequestURI(), ex.getClass().getSimpleName());
+    }
+
+    private void logError(Exception ex, HttpServletRequest request) {
+        log.error("request failed unexpectedly: requestId={}, path={}, exceptionType={}",
+                requestId(request), request.getRequestURI(), ex.getClass().getSimpleName(), ex);
     }
 }
