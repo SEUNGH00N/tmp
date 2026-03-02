@@ -1,7 +1,29 @@
+# VCS
 .git
+.gitignore
+
+# Build outputs
+**/target
+
+# IDE / OS
 .idea
 .vscode
-**/target
-**/.DS_Store
+*.iml
+.DS_Store
+Thumbs.db
+
+# Local runtime artifacts
 storage
 *.log
+
+# Docs and planning artifacts (not required for app image build)
+docs
+deploy
+WBS.md
+ERD.md
+NEXT_SPRINT_CHECKLIST.md
+FRONTEND_PUBLISHING_AI_PROMPT.md
+00.md
+
+# Sample files
+*.xlsx
