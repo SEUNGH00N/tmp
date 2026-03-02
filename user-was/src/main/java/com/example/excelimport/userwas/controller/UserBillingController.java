@@ -5,6 +5,7 @@ import com.example.excelimport.userwas.dto.UserBillingSummaryResponse;
 import com.example.excelimport.userwas.dto.UserPlanResponse;
 import com.example.excelimport.userwas.dto.UserSubscriptionResponse;
 import com.example.excelimport.userwas.service.UserBillingService;
+import com.example.excelimport.userwas.web.RequestIdResolver;
 import com.example.excelimport.userwas.web.WorkspaceContextResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,11 +21,14 @@ public class UserBillingController {
 
     private final UserBillingService userBillingService;
     private final WorkspaceContextResolver workspaceContextResolver;
+    private final RequestIdResolver requestIdResolver;
 
     public UserBillingController(UserBillingService userBillingService,
-                                 WorkspaceContextResolver workspaceContextResolver) {
+                                 WorkspaceContextResolver workspaceContextResolver,
+                                 RequestIdResolver requestIdResolver) {
         this.userBillingService = userBillingService;
         this.workspaceContextResolver = workspaceContextResolver;
+        this.requestIdResolver = requestIdResolver;
     }
 
     @GetMapping("/plan")
@@ -34,7 +38,7 @@ public class UserBillingController {
             HttpServletRequest request
     ) {
         UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, request);
-        return ApiResponse.success(userBillingService.getCurrentPlan(effectiveWorkspaceId));
+        return ApiResponse.success(userBillingService.getCurrentPlan(effectiveWorkspaceId), requestIdResolver.resolve(request));
     }
 
     @GetMapping("/subscription")
@@ -44,7 +48,7 @@ public class UserBillingController {
             HttpServletRequest request
     ) {
         UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, request);
-        return ApiResponse.success(userBillingService.getCurrentSubscription(effectiveWorkspaceId));
+        return ApiResponse.success(userBillingService.getCurrentSubscription(effectiveWorkspaceId), requestIdResolver.resolve(request));
     }
 
     @GetMapping("/summary")
@@ -54,6 +58,6 @@ public class UserBillingController {
             HttpServletRequest request
     ) {
         UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, request);
-        return ApiResponse.success(userBillingService.getSummary(effectiveWorkspaceId));
+        return ApiResponse.success(userBillingService.getSummary(effectiveWorkspaceId), requestIdResolver.resolve(request));
     }
 }

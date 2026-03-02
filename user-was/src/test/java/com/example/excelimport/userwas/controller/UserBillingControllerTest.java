@@ -6,6 +6,7 @@ import com.example.excelimport.userwas.dto.UserPlanResponse;
 import com.example.excelimport.userwas.dto.UserSubscriptionResponse;
 import com.example.excelimport.userwas.exception.UserWasException;
 import com.example.excelimport.userwas.service.UserBillingService;
+import com.example.excelimport.userwas.web.RequestIdResolver;
 import com.example.excelimport.userwas.web.WorkspaceContextResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
@@ -31,29 +32,35 @@ class UserBillingControllerTest {
     private WorkspaceContextResolver workspaceContextResolver;
 
     @Mock
+    private RequestIdResolver requestIdResolver;
+
+    @Mock
     private HttpServletRequest request;
 
     @Test
     void planReturnsSuccessWithResolvedWorkspace() {
-        UserBillingController controller = new UserBillingController(userBillingService, workspaceContextResolver);
+        UserBillingController controller = new UserBillingController(userBillingService, workspaceContextResolver, requestIdResolver);
         UUID workspaceId = UUID.randomUUID();
         UUID tenantId = UUID.randomUUID();
         UserPlanResponse planResponse = new UserPlanResponse("FREE", "Free", 100, 20);
 
         when(workspaceContextResolver.resolve(workspaceId, tenantId, request)).thenReturn(workspaceId);
+        when(requestIdResolver.resolve(request)).thenReturn("req-billing-plan");
         when(userBillingService.getCurrentPlan(workspaceId)).thenReturn(planResponse);
 
         ApiResponse<UserPlanResponse> response = controller.plan(workspaceId, tenantId, request);
 
         assertEquals(true, response.success());
         assertEquals(planResponse, response.data());
+        assertEquals("req-billing-plan", response.meta().requestId());
         verify(workspaceContextResolver).resolve(workspaceId, tenantId, request);
+        verify(requestIdResolver).resolve(request);
         verify(userBillingService).getCurrentPlan(workspaceId);
     }
 
     @Test
     void subscriptionReturnsSuccessWithResolvedWorkspace() {
-        UserBillingController controller = new UserBillingController(userBillingService, workspaceContextResolver);
+        UserBillingController controller = new UserBillingController(userBillingService, workspaceContextResolver, requestIdResolver);
         UUID workspaceId = UUID.randomUUID();
         UUID tenantId = UUID.randomUUID();
         UserSubscriptionResponse subscriptionResponse = new UserSubscriptionResponse(
@@ -61,19 +68,22 @@ class UserBillingControllerTest {
         );
 
         when(workspaceContextResolver.resolve(workspaceId, tenantId, request)).thenReturn(workspaceId);
+        when(requestIdResolver.resolve(request)).thenReturn("req-billing-subscription");
         when(userBillingService.getCurrentSubscription(workspaceId)).thenReturn(subscriptionResponse);
 
         ApiResponse<UserSubscriptionResponse> response = controller.subscription(workspaceId, tenantId, request);
 
         assertEquals(true, response.success());
         assertEquals(subscriptionResponse, response.data());
+        assertEquals("req-billing-subscription", response.meta().requestId());
         verify(workspaceContextResolver).resolve(workspaceId, tenantId, request);
+        verify(requestIdResolver).resolve(request);
         verify(userBillingService).getCurrentSubscription(workspaceId);
     }
 
     @Test
     void summaryReturnsSuccessWithResolvedWorkspace() {
-        UserBillingController controller = new UserBillingController(userBillingService, workspaceContextResolver);
+        UserBillingController controller = new UserBillingController(userBillingService, workspaceContextResolver, requestIdResolver);
         UUID workspaceId = UUID.randomUUID();
         UUID tenantId = UUID.randomUUID();
         UserBillingSummaryResponse summaryResponse = new UserBillingSummaryResponse(
@@ -83,19 +93,22 @@ class UserBillingControllerTest {
         );
 
         when(workspaceContextResolver.resolve(workspaceId, tenantId, request)).thenReturn(workspaceId);
+        when(requestIdResolver.resolve(request)).thenReturn("req-billing-summary");
         when(userBillingService.getSummary(workspaceId)).thenReturn(summaryResponse);
 
         ApiResponse<UserBillingSummaryResponse> response = controller.summary(workspaceId, tenantId, request);
 
         assertEquals(true, response.success());
         assertEquals(summaryResponse, response.data());
+        assertEquals("req-billing-summary", response.meta().requestId());
         verify(workspaceContextResolver).resolve(workspaceId, tenantId, request);
+        verify(requestIdResolver).resolve(request);
         verify(userBillingService).getSummary(workspaceId);
     }
 
     @Test
     void planPropagatesWorkspaceRequiredException() {
-        UserBillingController controller = new UserBillingController(userBillingService, workspaceContextResolver);
+        UserBillingController controller = new UserBillingController(userBillingService, workspaceContextResolver, requestIdResolver);
         UUID tenantId = UUID.randomUUID();
 
         when(workspaceContextResolver.resolve(null, tenantId, request))
@@ -107,4 +120,3 @@ class UserBillingControllerTest {
         assertEquals("workspace_id is required", exception.getMessage());
     }
 }
-

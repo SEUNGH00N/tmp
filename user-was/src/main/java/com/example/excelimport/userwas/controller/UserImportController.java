@@ -7,6 +7,7 @@ import com.example.excelimport.userwas.dto.UserImportListResponse;
 import com.example.excelimport.userwas.dto.UserImportRowListResponse;
 import com.example.excelimport.userwas.dto.UserImportStatusResponse;
 import com.example.excelimport.userwas.service.UserImportService;
+import com.example.excelimport.userwas.web.RequestIdResolver;
 import com.example.excelimport.userwas.web.WorkspaceContextResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -27,11 +28,14 @@ public class UserImportController {
 
     private final UserImportService userImportService;
     private final WorkspaceContextResolver workspaceContextResolver;
+    private final RequestIdResolver requestIdResolver;
 
     public UserImportController(UserImportService userImportService,
-                                WorkspaceContextResolver workspaceContextResolver) {
+                                WorkspaceContextResolver workspaceContextResolver,
+                                RequestIdResolver requestIdResolver) {
         this.userImportService = userImportService;
         this.workspaceContextResolver = workspaceContextResolver;
+        this.requestIdResolver = requestIdResolver;
     }
 
     @PostMapping(consumes = "multipart/form-data")
@@ -42,7 +46,7 @@ public class UserImportController {
             HttpServletRequest request) {
         UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, request);
         UserImportCreateResponse data = userImportService.create(effectiveWorkspaceId, file);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, requestIdResolver.resolve(request)));
     }
 
     @GetMapping
@@ -53,7 +57,7 @@ public class UserImportController {
             @RequestParam(value = "size", defaultValue = "20") int size,
             HttpServletRequest request) {
         UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, request);
-        return ApiResponse.success(userImportService.list(effectiveWorkspaceId, page, size));
+        return ApiResponse.success(userImportService.list(effectiveWorkspaceId, page, size), requestIdResolver.resolve(request));
     }
 
     @GetMapping("/{jobId}")
@@ -63,7 +67,7 @@ public class UserImportController {
             @RequestParam(value = "tenant_id", required = false) UUID tenantId,
             HttpServletRequest request) {
         UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, request);
-        return ApiResponse.success(userImportService.status(effectiveWorkspaceId, jobId));
+        return ApiResponse.success(userImportService.status(effectiveWorkspaceId, jobId), requestIdResolver.resolve(request));
     }
 
     @GetMapping("/{jobId}/rows")
@@ -75,7 +79,7 @@ public class UserImportController {
             @RequestParam(value = "size", defaultValue = "50") int size,
             HttpServletRequest request) {
         UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, request);
-        return ApiResponse.success(userImportService.rows(effectiveWorkspaceId, jobId, page, size));
+        return ApiResponse.success(userImportService.rows(effectiveWorkspaceId, jobId, page, size), requestIdResolver.resolve(request));
     }
 
     @GetMapping("/{jobId}/errors")
@@ -87,17 +91,17 @@ public class UserImportController {
             @RequestParam(value = "size", defaultValue = "50") int size,
             HttpServletRequest request) {
         UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, request);
-        return ApiResponse.success(userImportService.errors(effectiveWorkspaceId, jobId, page, size));
+        return ApiResponse.success(userImportService.errors(effectiveWorkspaceId, jobId, page, size), requestIdResolver.resolve(request));
     }
 
     @PostMapping("/session/workspace")
     public ApiResponse<Void> setWorkspaceSession(@RequestParam("workspace_id") UUID workspaceId, HttpServletRequest request) {
         workspaceContextResolver.setWorkspaceSession(request, workspaceId);
-        return ApiResponse.success(null);
+        return ApiResponse.success(null, requestIdResolver.resolve(request));
     }
 
     @GetMapping("/session/workspace")
     public ApiResponse<String> getWorkspaceSession(HttpServletRequest request) {
-        return ApiResponse.success(workspaceContextResolver.getWorkspaceSession(request));
+        return ApiResponse.success(workspaceContextResolver.getWorkspaceSession(request), requestIdResolver.resolve(request));
     }
 }

@@ -6,6 +6,7 @@ import com.example.excelimport.userwas.dto.UserApprovalRequestItem;
 import com.example.excelimport.userwas.dto.UserFeatureFlagItem;
 import com.example.excelimport.userwas.exception.UserWasException;
 import com.example.excelimport.userwas.service.UserGovernanceService;
+import com.example.excelimport.userwas.web.RequestIdResolver;
 import com.example.excelimport.userwas.web.WorkspaceContextResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
@@ -32,11 +33,14 @@ class UserGovernanceControllerTest {
     private WorkspaceContextResolver workspaceContextResolver;
 
     @Mock
+    private RequestIdResolver requestIdResolver;
+
+    @Mock
     private HttpServletRequest request;
 
     @Test
     void requestImportApprovalUsesResolvedWorkspaceId() {
-        UserGovernanceController controller = new UserGovernanceController(userGovernanceService, workspaceContextResolver);
+        UserGovernanceController controller = new UserGovernanceController(userGovernanceService, workspaceContextResolver, requestIdResolver);
         UUID workspaceId = UUID.randomUUID();
         UUID tenantId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
@@ -44,6 +48,7 @@ class UserGovernanceControllerTest {
         UUID createdId = UUID.randomUUID();
 
         when(workspaceContextResolver.resolve(workspaceId, tenantId, request)).thenReturn(workspaceId);
+        when(requestIdResolver.resolve(request)).thenReturn("req-gov-create");
         when(userGovernanceService.createImportApprovalRequest(
                 workspaceId, jobId, "workspace-user", "PLATFORM_ADMIN", "need review"
         )).thenReturn(createdId);
@@ -52,7 +57,9 @@ class UserGovernanceControllerTest {
 
         assertEquals(true, response.success());
         assertEquals(createdId, response.data());
+        assertEquals("req-gov-create", response.meta().requestId());
         verify(workspaceContextResolver).resolve(workspaceId, tenantId, request);
+        verify(requestIdResolver).resolve(request);
         verify(userGovernanceService).createImportApprovalRequest(
                 workspaceId, jobId, "workspace-user", "PLATFORM_ADMIN", "need review"
         );
@@ -60,7 +67,7 @@ class UserGovernanceControllerTest {
 
     @Test
     void listApprovalRequestsUsesResolvedWorkspaceId() {
-        UserGovernanceController controller = new UserGovernanceController(userGovernanceService, workspaceContextResolver);
+        UserGovernanceController controller = new UserGovernanceController(userGovernanceService, workspaceContextResolver, requestIdResolver);
         UUID workspaceId = UUID.randomUUID();
         UUID tenantId = UUID.randomUUID();
         List<UserApprovalRequestItem> items = List.of(
@@ -69,19 +76,22 @@ class UserGovernanceControllerTest {
         );
 
         when(workspaceContextResolver.resolve(workspaceId, tenantId, request)).thenReturn(workspaceId);
+        when(requestIdResolver.resolve(request)).thenReturn("req-gov-list");
         when(userGovernanceService.listApprovalRequests(workspaceId)).thenReturn(items);
 
         ApiResponse<List<UserApprovalRequestItem>> response = controller.listApprovalRequests(workspaceId, tenantId, request);
 
         assertEquals(true, response.success());
         assertEquals(items, response.data());
+        assertEquals("req-gov-list", response.meta().requestId());
         verify(workspaceContextResolver).resolve(workspaceId, tenantId, request);
+        verify(requestIdResolver).resolve(request);
         verify(userGovernanceService).listApprovalRequests(workspaceId);
     }
 
     @Test
     void listFeatureFlagsUsesResolvedWorkspaceId() {
-        UserGovernanceController controller = new UserGovernanceController(userGovernanceService, workspaceContextResolver);
+        UserGovernanceController controller = new UserGovernanceController(userGovernanceService, workspaceContextResolver, requestIdResolver);
         UUID workspaceId = UUID.randomUUID();
         UUID tenantId = UUID.randomUUID();
         List<UserFeatureFlagItem> items = List.of(
@@ -89,19 +99,22 @@ class UserGovernanceControllerTest {
         );
 
         when(workspaceContextResolver.resolve(workspaceId, tenantId, request)).thenReturn(workspaceId);
+        when(requestIdResolver.resolve(request)).thenReturn("req-gov-flags");
         when(userGovernanceService.listFeatureFlags(workspaceId)).thenReturn(items);
 
         ApiResponse<List<UserFeatureFlagItem>> response = controller.listFeatureFlags(workspaceId, tenantId, request);
 
         assertEquals(true, response.success());
         assertEquals(items, response.data());
+        assertEquals("req-gov-flags", response.meta().requestId());
         verify(workspaceContextResolver).resolve(workspaceId, tenantId, request);
+        verify(requestIdResolver).resolve(request);
         verify(userGovernanceService).listFeatureFlags(workspaceId);
     }
 
     @Test
     void listApprovalRequestsPropagatesWorkspaceRequiredException() {
-        UserGovernanceController controller = new UserGovernanceController(userGovernanceService, workspaceContextResolver);
+        UserGovernanceController controller = new UserGovernanceController(userGovernanceService, workspaceContextResolver, requestIdResolver);
         UUID tenantId = UUID.randomUUID();
 
         when(workspaceContextResolver.resolve(null, tenantId, request))
@@ -114,4 +127,3 @@ class UserGovernanceControllerTest {
         assertEquals("workspace_id is required", exception.getMessage());
     }
 }
-

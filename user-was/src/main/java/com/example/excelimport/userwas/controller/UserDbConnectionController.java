@@ -6,6 +6,7 @@ import com.example.excelimport.userwas.dto.UserDbConnectionCreateResponse;
 import com.example.excelimport.userwas.dto.UserDbConnectionListResponse;
 import com.example.excelimport.userwas.dto.UserDbConnectionTestResponse;
 import com.example.excelimport.userwas.service.UserDbConnectionService;
+import com.example.excelimport.userwas.web.RequestIdResolver;
 import com.example.excelimport.userwas.web.WorkspaceContextResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -26,11 +27,14 @@ public class UserDbConnectionController {
 
     private final UserDbConnectionService userDbConnectionService;
     private final WorkspaceContextResolver workspaceContextResolver;
+    private final RequestIdResolver requestIdResolver;
 
     public UserDbConnectionController(UserDbConnectionService userDbConnectionService,
-                                      WorkspaceContextResolver workspaceContextResolver) {
+                                      WorkspaceContextResolver workspaceContextResolver,
+                                      RequestIdResolver requestIdResolver) {
         this.userDbConnectionService = userDbConnectionService;
         this.workspaceContextResolver = workspaceContextResolver;
+        this.requestIdResolver = requestIdResolver;
     }
 
     @PostMapping
@@ -42,7 +46,7 @@ public class UserDbConnectionController {
     ) {
         UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, servletRequest);
         UserDbConnectionCreateResponse data = userDbConnectionService.create(effectiveWorkspaceId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, requestIdResolver.resolve(servletRequest)));
     }
 
     @GetMapping
@@ -52,7 +56,7 @@ public class UserDbConnectionController {
             HttpServletRequest servletRequest
     ) {
         UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, servletRequest);
-        return ApiResponse.success(userDbConnectionService.list(effectiveWorkspaceId));
+        return ApiResponse.success(userDbConnectionService.list(effectiveWorkspaceId), requestIdResolver.resolve(servletRequest));
     }
 
     @PostMapping("/{connectionId}/test")
@@ -63,6 +67,6 @@ public class UserDbConnectionController {
             HttpServletRequest servletRequest
     ) {
         UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, servletRequest);
-        return ApiResponse.success(userDbConnectionService.test(effectiveWorkspaceId, connectionId));
+        return ApiResponse.success(userDbConnectionService.test(effectiveWorkspaceId, connectionId), requestIdResolver.resolve(servletRequest));
     }
 }

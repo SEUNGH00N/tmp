@@ -5,6 +5,7 @@ import com.example.excelimport.userwas.dto.UserApprovalRequestCreateRequest;
 import com.example.excelimport.userwas.dto.UserApprovalRequestItem;
 import com.example.excelimport.userwas.dto.UserFeatureFlagItem;
 import com.example.excelimport.userwas.service.UserGovernanceService;
+import com.example.excelimport.userwas.web.RequestIdResolver;
 import com.example.excelimport.userwas.web.WorkspaceContextResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,11 +25,14 @@ public class UserGovernanceController {
 
     private final UserGovernanceService userGovernanceService;
     private final WorkspaceContextResolver workspaceContextResolver;
+    private final RequestIdResolver requestIdResolver;
 
     public UserGovernanceController(UserGovernanceService userGovernanceService,
-                                    WorkspaceContextResolver workspaceContextResolver) {
+                                    WorkspaceContextResolver workspaceContextResolver,
+                                    RequestIdResolver requestIdResolver) {
         this.userGovernanceService = userGovernanceService;
         this.workspaceContextResolver = workspaceContextResolver;
+        this.requestIdResolver = requestIdResolver;
     }
 
     @PostMapping("/approvals/imports/{jobId}/request")
@@ -44,7 +48,7 @@ public class UserGovernanceController {
         String mode = body == null ? null : body.policyMode();
         String reason = body == null ? null : body.reason();
         UUID id = userGovernanceService.createImportApprovalRequest(effectiveWorkspaceId, jobId, requestedBy, mode, reason);
-        return ApiResponse.success(id);
+        return ApiResponse.success(id, requestIdResolver.resolve(request));
     }
 
     @GetMapping("/approvals/requests")
@@ -54,7 +58,7 @@ public class UserGovernanceController {
             HttpServletRequest request
     ) {
         UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, request);
-        return ApiResponse.success(userGovernanceService.listApprovalRequests(effectiveWorkspaceId));
+        return ApiResponse.success(userGovernanceService.listApprovalRequests(effectiveWorkspaceId), requestIdResolver.resolve(request));
     }
 
     @GetMapping("/feature-flags")
@@ -64,6 +68,6 @@ public class UserGovernanceController {
             HttpServletRequest request
     ) {
         UUID effectiveWorkspaceId = workspaceContextResolver.resolve(workspaceId, tenantId, request);
-        return ApiResponse.success(userGovernanceService.listFeatureFlags(effectiveWorkspaceId));
+        return ApiResponse.success(userGovernanceService.listFeatureFlags(effectiveWorkspaceId), requestIdResolver.resolve(request));
     }
 }
