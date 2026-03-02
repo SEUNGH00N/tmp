@@ -23,6 +23,25 @@
 - Admin WAS: `http://localhost:8080`
 - User WAS: `http://localhost:8081`
 
+## Environment Variables (Docker Compose)
+- `docker-compose.yml` currently has fallback defaults for DB credentials.
+- Team policy: use `.env` values explicitly and do not rely on fallback defaults.
+
+Setup:
+```powershell
+copy .env.example .env
+```
+
+Required variables:
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+
+Validation:
+```powershell
+docker compose --env-file .env config
+```
+
 ## Current Deployment Baseline
 - `docker-compose.yml` 구성:
   - `gateway` (nginx reverse proxy)

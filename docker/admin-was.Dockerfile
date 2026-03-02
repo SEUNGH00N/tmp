@@ -18,7 +18,12 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build /workspace/admin-was/target/excel-import-admin-was-0.0.1-SNAPSHOT.jar app.jar
+RUN groupadd --system --gid 10001 app \
+    && useradd --system --uid 10001 --gid app --create-home --home-dir /home/app app
+
+COPY --from=build --chown=app:app /workspace/admin-was/target/excel-import-admin-was-0.0.1-SNAPSHOT.jar app.jar
+
+USER app:app
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
