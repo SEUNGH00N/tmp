@@ -172,6 +172,35 @@ Phase 1 - Low Risk
 ### 완료 조건
 - worker 실패 경로 로그에 식별자 필드가 포함된다.
 
+### RF-007
+### Task Name
+User API 성공 응답 requestId 정렬
+
+### Phase
+Phase 1 - Low Risk
+
+### 목적
+- user-was 성공 응답의 `meta.requestId`를 채워 request correlation을 일관화한다.
+
+### 작업 내용
+1. user 컨트롤러에서 `RequestIdFilter.REQUEST_ID_ATTR`를 읽는 공통 헬퍼를 정의한다.
+2. `ApiResponse.success(data)` 호출을 `ApiResponse.success(data, requestId)`로 치환한다.
+3. 기존 data/status/message 계약은 변경하지 않고 meta 필드만 보강한다.
+
+### 변경 대상
+- `user-was/src/main/java/com/example/excelimport/userwas/controller/UserImportController.java`
+- `user-was/src/main/java/com/example/excelimport/userwas/controller/UserBillingController.java`
+- `user-was/src/main/java/com/example/excelimport/userwas/controller/UserDbConnectionController.java`
+- `user-was/src/main/java/com/example/excelimport/userwas/controller/UserGovernanceController.java`
+
+### 검증 방법
+- user API 성공 응답에서 `meta.requestId` 존재 확인.
+- `X-Request-Id` 헤더와 응답 body의 `meta.requestId` 값 일치 확인.
+
+### 완료 조건
+- user-was 성공 응답이 `ApiResponse.success(data, requestId)` 경로를 사용한다.
+- 기존 endpoint 상태코드/응답 본문(data)은 유지된다.
+
 ## Phase 2 - Medium
 
 ### RF-101
@@ -346,6 +375,32 @@ Phase 2 - Medium
 ### 완료 조건
 - `UserDbConnectionService`에서 `catch(Exception)`이 제거된다.
 
+### RF-108
+### Task Name
+UserImport 생성 트랜잭션 경계 명시화
+
+### Phase
+Phase 2 - Medium
+
+### 목적
+- `UserImportService.create`의 다중 DB 업데이트를 단일 트랜잭션 경계로 보호한다.
+
+### 작업 내용
+1. `create` 경로의 DB 변경 구간(잡 생성/run/event/dedup)을 트랜잭션 경계로 묶는다.
+2. 외부 publish 호출 시점이 기존 동작과 충돌하지 않도록 경계를 분리/정리한다.
+3. 예외 메시지/상태코드/기존 fallback 정책은 유지한다.
+
+### 변경 대상
+- `user-was/src/main/java/com/example/excelimport/userwas/service/UserImportService.java`
+
+### 검증 방법
+- 실패 주입으로 부분 반영(중간 update만 반영) 여부 확인.
+- 기존 import 생성 API 응답/상태코드 회귀 확인.
+
+### 완료 조건
+- `create` 경로에 명시적 트랜잭션 경계가 존재한다.
+- 부분 반영 없이 롤백되는 것이 검증된다.
+
 ## Phase 3 - High
 
 ### RF-201
@@ -502,4 +557,3 @@ Phase 3 - High
 
 ### 완료 조건
 - 기본 자격증명 노출이 제거되고 운영 전환 체크 경로가 문서화된다.
-
